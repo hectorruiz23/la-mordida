@@ -55,11 +55,12 @@ func toContratos(publication ingestadomain.Publication) (contratosdomain.Publica
 	sum := sha256.Sum256(payload)
 
 	normalized := contratosdomain.Publication{
-		Source:     publication.Reference.Source,
-		ExternalID: publication.Reference.ID,
-		URL:        publication.Reference.URL,
-		UpdatedAt:  publication.UpdatedAt,
-		BodyHash:   hex.EncodeToString(sum[:]),
+		Source:        publication.Reference.Source,
+		ExternalID:    publication.Reference.ID,
+		URL:           publication.Reference.URL,
+		UpdatedAt:     publication.UpdatedAt,
+		EffectiveDate: publication.EffectiveDate,
+		BodyHash:      hex.EncodeToString(sum[:]),
 		Expediente: contratosdomain.Expediente{
 			Buyer: contratosdomain.Party{
 				Scheme: publication.Expediente.Buyer.Scheme,
@@ -111,6 +112,20 @@ func toContratos(publication ingestadomain.Publication) (contratosdomain.Publica
 			}
 		}
 		normalized.Awards = append(normalized.Awards, normalizedAward)
+	}
+
+	for _, fact := range publication.Events {
+		normalized.Facts = append(normalized.Facts, contratosdomain.Fact{
+			Kind:           contratosdomain.FactKind(fact.Kind),
+			Ref:            fact.Ref,
+			LotID:          fact.LotID,
+			EffectiveDate:  fact.EffectiveDate,
+			Amounts:        fact.Amounts,
+			DeadlineStatus: contratosdomain.Compliance(fact.DeadlineStatus),
+			DeliveryStatus: contratosdomain.Delivery(fact.DeliveryStatus),
+			Detail:         fact.Detail,
+			EvidenceHash:   fact.EvidenceHash,
+		})
 	}
 
 	for _, document := range publication.Documents {
