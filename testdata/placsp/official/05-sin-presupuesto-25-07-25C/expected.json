@@ -1,0 +1,58 @@
+{
+  "fixture": "official/05-sin-presupuesto-25-07-25C/publication.atom",
+  "official": true,
+  "channel": "sindicacion_643",
+  "kind": "no_comparable_budget",
+  "keys": {
+    "publication_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/17716628",
+    "contract_folder_id": "25-07/25C",
+    "buyer": { "scheme": "NIF", "id": "Q3818001D" },
+    "lot_ids": []
+  },
+  "expediente": {
+    "status": "ADJ",
+    "title": "Explotación Cafet. Bar Comedor de la Fac. de Economía, Empresa y Turismo",
+    "buyer_name": "Rectorado de la Universidad de La Laguna",
+    "currency": "EUR",
+    "feed_updated": "2025-10-29T17:22:18.411+01:00",
+    "cpv": ["55511000"]
+  },
+  "publications": [
+    { "notice_type": "DOC_CN", "issue_dates": ["2025-07-22", "2025-07-25"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CD", "issue_dates": ["2025-07-22"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CAN_ADJ", "issue_dates": ["2025-10-29"], "medium": "Perfil del contratante" }
+  ],
+  "lots": [],
+  "budget": {
+    "tax_exclusive": "0",
+    "total": "0",
+    "estimated": "90000",
+    "currency": "EUR",
+    "comparable": false,
+    "reason": "budget_not_positive"
+  },
+  "awards": [
+    {
+      "lot_id": null,
+      "result_code": "8",
+      "award_date": "2025-10-29",
+      "winner": { "scheme": "NIF", "id": "45526874F", "name": "Saturnino Padrón Rodríguez" },
+      "amount": { "tax_exclusive": "69000", "payable": "73830", "currency": "EUR", "vat": { "rate": "0.07", "tax_amount": "4830" } },
+      "contract": null,
+      "rebate": null
+    }
+  ],
+  "expected": {
+    "award_count": 1,
+    "winner_award_counts": { "45526874F": 1 },
+    "rebates": {},
+    "excluded_from_rebajas": [
+      { "award": "45526874F", "reason": "budget_not_positive", "detail": "TaxExclusiveAmount is 0; EstimatedOverallContractAmount 90000 is not the budget base" }
+    ]
+  },
+  "notes": [
+    "Zero is published, but it is not a positive budget: the rebate is excluded, not 100 %.",
+    "The 90 000 estimated value is not substituted for the 0 budget.",
+    "7 % is IGIC (Canary Islands), derived from 73830-69000; the currency is still EUR."
+  ]
+}

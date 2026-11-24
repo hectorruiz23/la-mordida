@@ -1,0 +1,29 @@
+{
+  "fixture": "synthetic/04-unknown-currency/publication.atom",
+  "official": false,
+  "synthetic": true,
+  "channel": "synthetic",
+  "kind": "unknown_currency",
+  "keys": {
+    "publication_id": "urn:la-mordida:placsp:synthetic:unknown-currency:1",
+    "contract_folder_id": "SYN-NO-CURRENCY",
+    "buyer": { "scheme": "NIF", "id": "P0000000D" },
+    "lot_ids": []
+  },
+  "budget": { "tax_exclusive": "1000", "total": "1210", "currency": null },
+  "awards": [
+    { "lot_id": null, "award_date": "2026-03-01", "winner": { "scheme": "NIF", "id": "B44444444" }, "amount": { "tax_exclusive": "900", "payable": "1089", "currency": null, "vat": { "rate": "0.21", "tax_amount": "189" } }, "rebate": "0.1" }
+  ],
+  "expected": {
+    "award_count": 1,
+    "winner_award_counts": { "B44444444": 1 },
+    "rebates": {},
+    "excluded_from_rebajas": [
+      { "reason": "currency_unknown", "detail": "currencyID is absent; 900 cannot be compared with EUR amounts" }
+    ]
+  },
+  "notes": [
+    "The nominal ratio is 0.1, but the currency is unknown: it is not a comparable rebate.",
+    "Never assume EUR when currencyID is absent; never mix currencies in the ranking."
+  ]
+}
