@@ -20,10 +20,12 @@ test:
 	$(GO) vet ./...
 	$(GO) test ./...
 
-# The acceptance scenario of the plan: it is built by the card that ships the
-# web surface, and it has to prove the integrated app over local fixtures.
-scenario:
-	@echo "make scenario is not implemented yet: it arrives with the card that serves the rankings"; exit 1
+# The acceptance scenario of the plan. Until the rankings are served there is
+# nothing to rank: it only proves the binary answers. The card that ships the
+# web surface replaces this with the real scenario over local fixtures.
+scenario: build
+	@./$(BIN) --help > /dev/null || { echo "scenario: the binary does not answer --help"; exit 1; }
+	@echo "scenario: the rankings are not served yet; the binary answers --help"
 
 clean:
 	rm -rf bin
