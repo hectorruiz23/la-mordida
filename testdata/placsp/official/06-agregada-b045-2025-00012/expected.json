@@ -1,0 +1,75 @@
+{
+  "fixture": "official/06-agregada-b045-2025-00012/publication.atom",
+  "official": true,
+  "channel": "sindicacion_1044",
+  "kind": "aggregated",
+  "keys": {
+    "publication_id": "https://contrataciondelestado.es/sindicacion/PlataformasAgregadasSinMenores/17513257",
+    "contract_folder_id": "B045-2025-00012",
+    "buyer": { "scheme": "ID_OC_PLAT", "id": "18367_18368_18369", "nif": null },
+    "lot_ids": ["554776", "554777"]
+  },
+  "expediente": {
+    "status": "ADJ",
+    "title": "Servicio de mantenimiento y desarrollo de aplicaciones informáticas y suministro de hostings",
+    "buyer_name": "Ayuntamiento de Güeñes-Junta de Gobierno",
+    "currency": "EUR",
+    "feed_updated": "2025-10-01T11:11:13.426+02:00",
+    "cpv": ["72500000"]
+  },
+  "publications": [
+    { "notice_type": "DOC_CN", "issue_dates": ["2025-06-19"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CN", "issue_dates": ["2025-07-07"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CN", "issue_dates": ["2025-07-24"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CAN_ADJ", "issue_dates": ["2025-10-01"], "medium": "Perfil del contratante" }
+  ],
+  "lots": [
+    { "id": "554776", "name": "Lote 1 - Servicio de asistencia técnica", "budget": null },
+    { "id": "554777", "name": "Lote 2 - Servicio de mantenimiento y desarrollo de aplicaciones informáticas y suministro de hostings", "budget": null }
+  ],
+  "budget": { "tax_exclusive": "48166.15", "total": null, "estimated": "48166.15", "currency": "EUR", "comparable": false, "reason": "no_lot_breakdown" },
+  "awards": [
+    {
+      "lot_id": "554776",
+      "result_code": "8",
+      "award_date": null,
+      "winner": { "scheme": "NIF", "id": "B95619953", "name": "Bittek Soluciones Tecnológicas" },
+      "amount": { "tax_exclusive": "0", "payable": null, "currency": "EUR", "vat": { "rate": null, "tax_amount": null } },
+      "contract": { "id": "B045-2025-00012770_00001", "issue_date": "2025-09-05" },
+      "rebate": null
+    },
+    {
+      "lot_id": "554777",
+      "result_code": "8",
+      "award_date": null,
+      "winner": { "scheme": "NIF", "id": "B95619953", "name": "Bittek Soluciones Tecnológicas" },
+      "amount": { "tax_exclusive": "0", "payable": null, "currency": "EUR", "vat": { "rate": null, "tax_amount": null } },
+      "contract": { "id": "B045-2025-00012770_00002", "issue_date": "2025-09-05" },
+      "rebate": null
+    }
+  ],
+  "expected": {
+    "award_count": 2,
+    "winner_award_counts": { "B95619953": 2 },
+    "rebates": {},
+    "excluded_from_rebajas": [
+      { "lot_id": "554776", "reason": "no_lot_budget" },
+      { "lot_id": "554777", "reason": "no_lot_budget" },
+      { "lot_id": "554776", "reason": "amount_not_positive" },
+      { "lot_id": "554777", "reason": "amount_not_positive" }
+    ]
+  },
+  "unknowns": [
+    "buyer NIF/DIR3: only ID_OC_PLAT, a concatenation of three platform ids",
+    "award date: absent; Contract/IssueDate 2025-09-05 is the contract date",
+    "award amount: published as 0, no PayableAmount; not a free contract",
+    "VAT rate: unknown (no payable amount)",
+    "lot budgets: absent; the 48 166.15 project budget cannot be split without guessing",
+    "why three DOC_CN dates: successive reissues/corrections, not typed"
+  ],
+  "notes": [
+    "The two awarded lots count twice for the same company in the winner ranking; the amounts are not comparable, so both are excluded from the rebate ranking with their reasons.",
+    "Do not infer a per-lot budget by dividing 48 166.15 by two.",
+    "The deeplink points to the Basque platform, not to contrataciondelestado.es."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "fixture": "official/01-lotes-1787-2025/publication.atom",
+  "official": true,
+  "channel": "sindicacion_643",
+  "kind": "lots",
+  "keys": {
+    "publication_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/17680481",
+    "contract_folder_id": "1787/2025",
+    "buyer": { "scheme": "NIF", "id": "P3704600J" },
+    "lot_ids": ["1", "2"]
+  },
+  "expediente": {
+    "status": "ADJ",
+    "title": "Suministro de productos y útiles de limpieza e higien personal para el servicio de extinción de incendios del ayutamiento de Béjar",
+    "buyer_name": "Alcaldía del Ayuntamiento de Béjar",
+    "currency": "EUR",
+    "feed_updated": "2025-10-20T10:23:07.464+02:00"
+  },
+  "publications": [
+    { "notice_type": "DOC_CN", "issue_dates": ["2025-07-16"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CD", "issue_dates": ["2025-07-16"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CAN_ADJ", "issue_dates": ["2025-10-20", "2025-10-20"], "medium": "Perfil del contratante" }
+  ],
+  "lots": [
+    {
+      "id": "1",
+      "name": "Productos para la higiene personal",
+      "budget": { "tax_exclusive": "1317.74", "total": "1594.47", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "276.73" } }
+    },
+    {
+      "id": "2",
+      "name": "Productos de limpieza y pulido",
+      "budget": { "tax_exclusive": "1129.48", "total": "1366.67", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "237.19" } }
+    }
+  ],
+  "awards": [
+    {
+      "lot_id": "1",
+      "result_code": "8",
+      "award_date": "2025-10-10",
+      "winner": { "scheme": "NIF", "id": "B37491404", "name": "Suministros Lavabar, SL" },
+      "amount": { "tax_exclusive": "784.11", "payable": "948.77", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "164.66" } },
+      "contract": null,
+      "rebate": { "numerator": "533.63", "denominator": "1317.74", "ratio": "0.404958", "percent": "40.4958" }
+    },
+    {
+      "lot_id": "2",
+      "result_code": "8",
+      "award_date": "2025-10-10",
+      "winner": { "scheme": "NIF", "id": "B10174308", "name": "FARCOSA S.L" },
+      "amount": { "tax_exclusive": "594.09", "payable": "718.84", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "124.75" } },
+      "contract": null,
+      "rebate": { "numerator": "535.39", "denominator": "1129.48", "ratio": "0.474015", "percent": "47.4015" }
+    }
+  ],
+  "expected": {
+    "award_count": 2,
+    "winner_award_counts": { "B37491404": 1, "B10174308": 1 },
+    "rebates": { "1": "0.404958", "2": "0.474015" },
+    "excluded_from_rebajas": []
+  },
+  "notes": [
+    "Two lots, two different winners, one award per lot: 2 awards for the buyer, 1 for each company.",
+    "VAT is not an XML element; 0.21 is derived from the cents: 1594.47-1317.74, 948.77-784.11, etc.",
+    "Rebate denominator is the lot budget, not the project budget (2447.22).",
+    "AwardDate is a civil date; it is kept as a date, not folded into feed_updated."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "fixture_set": "official/02-correccion-37988-2025",
+  "official": true,
+  "channel": "sindicacion_643",
+  "kind": "correction",
+  "keys": {
+    "publication_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/18080657",
+    "contract_folder_id": "37988/2025",
+    "buyer": { "scheme": "NIF", "id": "P2812300H" }
+  },
+  "snapshots": [
+    {
+      "fixture": "official/02-correccion-37988-2025/before-2025-10-01.atom",
+      "feed_updated": "2025-10-01T14:59:09.022+02:00",
+      "status": "PUB",
+      "submission_deadline": { "date": "2025-10-16", "time": "23:59:00" },
+      "notices": [
+        { "notice_type": "DOC_CN", "issue_dates": ["2025-10-01"], "medium": "Perfil del contratante" },
+        { "notice_type": "DOC_CD", "issue_dates": ["2025-10-01"], "medium": "Perfil del contratante" }
+      ]
+    },
+    {
+      "fixture": "official/02-correccion-37988-2025/after-2025-10-22.atom",
+      "feed_updated": "2025-10-22T13:49:51.509+02:00",
+      "status": "EV",
+      "submission_deadline": { "date": "2025-10-17", "time": "23:59:00" },
+      "notices": [
+        { "notice_type": "DOC_CN", "issue_dates": ["2025-10-01", "2025-10-17"], "medium": "Perfil del contratante" },
+        { "notice_type": "DOC_CD", "issue_dates": ["2025-10-01", "2025-10-17"], "medium": "Perfil del contratante" }
+      ]
+    }
+  ],
+  "expediente": {
+    "title": "Servicio del programa de formación, implementación y acompañamiento en actuaciones educativas de éxito en Rivas Vaciamadrid.",
+    "buyer_name": "Junta de Gobierno del Ayuntamiento de Rivas Vaciamadrid",
+    "budget": { "tax_exclusive": "50147.28", "total": "60678.21", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "10530.93" } },
+    "estimated": "50147.28"
+  },
+  "correction": {
+    "detected": true,
+    "signal": "second distinct IssueDate 2025-10-17 under the same ValidNoticeInfo (DOC_CN and DOC_CD) and the same medium",
+    "changed_fields": {
+      "submission_deadline.date": { "before": "2025-10-16", "after": "2025-10-17" },
+      "ContractFolderStatusCode": { "before": "PUB", "after": "EV" }
+    },
+    "notice_type_added": null,
+    "reason": "unknown",
+    "why": "PLACSP has no CORRECCION notice type and does not label which fields the republication changed; the diff is observed, the reason is not published."
+  },
+  "expected": {
+    "award_count": 0,
+    "rebates": {},
+    "current_snapshot": "after-2025-10-22.atom",
+    "keep_both_versions": true
+  },
+  "notes": [
+    "The two snapshots share the same entry/id; only entry/updated and the data changed.",
+    "The budget did not change between versions; only the deadline and the notice dates did.",
+    "A model that keeps only the latest snapshot loses the correction; a model that keeps only the first serves a stale deadline."
+  ]
+}

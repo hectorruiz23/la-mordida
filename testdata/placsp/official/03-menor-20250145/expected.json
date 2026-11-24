@@ -1,0 +1,48 @@
+{
+  "fixture": "official/03-menor-20250145/publication.atom",
+  "official": true,
+  "channel": "sindicacion_1143",
+  "kind": "minor",
+  "keys": {
+    "publication_id": "https://contrataciondelestado.es/sindicacion/datosAbiertosMenores/18077195",
+    "contract_folder_id": "20250145",
+    "buyer": { "scheme": "NIF", "id": "S2826046A" },
+    "lot_ids": []
+  },
+  "expediente": {
+    "status": "RES",
+    "title": "Suministro del mobiliario para salas de reuniones y despachos del edificio A del Instituto de Estudios Fiscales",
+    "buyer_name": "Dirección del Instituto de Estudios Fiscales",
+    "currency": "EUR",
+    "feed_updated": "2025-09-30T13:58:42.996+02:00",
+    "cpv": [],
+    "documents": []
+  },
+  "publications": [
+    { "notice_type": "DOC_CAN_ADJ", "issue_dates": ["2025-09-30"], "medium": "Perfil del contratante" }
+  ],
+  "lots": [],
+  "awards": [
+    {
+      "lot_id": null,
+      "result_code": "8",
+      "award_date": "2025-09-30",
+      "winner": { "scheme": "NIF", "id": "B87596276", "name": "ASENGA LOGISTICA S.L" },
+      "amount": { "tax_exclusive": "14691.62", "payable": "17776.86", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "3085.24" } },
+      "contract": null,
+      "rebate": { "numerator": "178.38", "denominator": "14870", "ratio": "0.011996", "percent": "1.1996" }
+    }
+  ],
+  "budget": { "tax_exclusive": "14870", "total": "17992.7", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "3122.7" }, "estimated": null },
+  "expected": {
+    "award_count": 1,
+    "winner_award_counts": { "B87596276": 1 },
+    "rebates": { "global": "0.011996" },
+    "excluded_from_rebajas": []
+  },
+  "notes": [
+    "Minor contract: no lots, no CPV, no documents, no contract reference. That is normal for the channel, not missing data.",
+    "The global award has no ProcurementProjectLotID; the rebate denominator is the expediente budget.",
+    "21 % VAT is derived from 17992.7-14870 and 17776.86-14691.62, not from an element."
+  ]
+}
