@@ -18,18 +18,21 @@ func New(database *sql.DB) *Store {
 	return &Store{database: database}
 }
 
-// ListExpedientes reads the latest publication version of every expediente.
+// ListExpedientes reads the current projection of every expediente. The
+// projection points at the newest source revision, not at the last row that
+// happened to be imported, so an out-of-order reread cannot rewind it.
 func (s *Store) ListExpedientes(ctx context.Context) ([]domain.Expediente, error) {
 	rows, err := s.database.QueryContext(ctx, `
 		SELECT e.id, e.buyer_scheme, e.buyer_id, e.buyer_name, e.folder_id, e.object, e.status,
-		       p.id, p.source, p.external_id, p.url, p.updated_at
+		       e.projection_state,
+		       p.id, p.source, p.external_id, p.url, p.published_at, COALESCE(p.effective_date, '')
 		FROM expediente e
-		JOIN publication p ON p.id = (
-			SELECT p2.id FROM publication p2
-			WHERE p2.expediente_id = e.id
-			ORDER BY p2.updated_at DESC, p2.id DESC
-			LIMIT 1
-		)
+		JOIN publication p ON p.id = COALESCE(
+			e.current_publication_id,
+			(SELECT p2.id FROM publication p2
+			 WHERE p2.expediente_id = e.id
+			 ORDER BY julianday(p2.published_at) DESC, p2.id DESC
+			 LIMIT 1))
 		ORDER BY e.folder_id, e.buyer_id`)
 	if err != nil {
 		return nil, fmt.Errorf("list expedientes: %w", err)
@@ -43,9 +46,10 @@ func (s *Store) ListExpedientes(ctx context.Context) ([]domain.Expediente, error
 		if err := rows.Scan(
 			&expedienteID,
 			&expediente.Buyer.Scheme, &expediente.Buyer.ID, &expediente.Buyer.Name,
-			&expediente.FolderID, &expediente.Object, &expediente.Status,
+			&expediente.FolderID, &expediente.Object, &expediente.Status, &expediente.State,
 			&publicationID, &expediente.Publication.Source, &expediente.Publication.ExternalID,
 			&expediente.Publication.URL, &expediente.Publication.UpdatedAt,
+			&expediente.Publication.EffectiveDate,
 		); err != nil {
 			return nil, fmt.Errorf("scan expediente: %w", err)
 		}
@@ -56,7 +60,10 @@ func (s *Store) ListExpedientes(ctx context.Context) ([]domain.Expediente, error
 		if expediente.Lots, err = lots(ctx, s.database, expedienteID, publicationID); err != nil {
 			return nil, err
 		}
-		if expediente.Awards, err = awards(ctx, s.database, publicationID); err != nil {
+		if expediente.Awards, err = awards(ctx, s.database, expedienteID); err != nil {
+			return nil, err
+		}
+		if expediente.Facts, err = facts(ctx, s.database, expedienteID); err != nil {
 			return nil, err
 		}
 		if expediente.Documents, err = documents(ctx, s.database, publicationID); err != nil {
@@ -95,7 +102,7 @@ func budget(ctx context.Context, database *sql.DB, publicationID int64, lotKey s
 
 func lots(ctx context.Context, database *sql.DB, expedienteID, publicationID int64) ([]domain.Lot, error) {
 	rows, err := database.QueryContext(ctx, `
-		SELECT lot_id, object
+		SELECT lot_id, object, projection_state
 		FROM lot
 		WHERE expediente_id = ?
 		ORDER BY lot_id`, expedienteID)
@@ -107,7 +114,7 @@ func lots(ctx context.Context, database *sql.DB, expedienteID, publicationID int
 	var result []domain.Lot
 	for rows.Next() {
 		var lot domain.Lot
-		if err := rows.Scan(&lot.ID, &lot.Object); err != nil {
+		if err := rows.Scan(&lot.ID, &lot.Object, &lot.State); err != nil {
 			return nil, fmt.Errorf("scan lot: %w", err)
 		}
 		if lot.Budget, err = budget(ctx, database, publicationID, lot.ID); err != nil {
@@ -118,14 +125,17 @@ func lots(ctx context.Context, database *sql.DB, expedienteID, publicationID int
 	return result, rows.Err()
 }
 
-func awards(ctx context.Context, database *sql.DB, publicationID int64) ([]domain.Award, error) {
+// awards reads the materialised current award, not the awards embedded in one
+// revision. A repeated photo from another channel therefore cannot create a
+// second victory, and an indeterminate projection keeps its state visible.
+func awards(ctx context.Context, database *sql.DB, expedienteID int64) ([]domain.Award, error) {
 	rows, err := database.QueryContext(ctx, `
-		SELECT id, lot_id, result_code, COALESCE(award_date, ''),
+		SELECT lot_id, state, result_code, COALESCE(award_date, ''),
 		       winner_scheme, winner_id, winner_name,
 		       contract_id, COALESCE(contract_issue_date, '')
-		FROM award
-		WHERE publication_id = ?
-		ORDER BY position`, publicationID)
+		FROM award_projection
+		WHERE expediente_id = ?
+		ORDER BY lot_id`, expedienteID)
 	if err != nil {
 		return nil, fmt.Errorf("read awards: %w", err)
 	}
@@ -133,11 +143,10 @@ func awards(ctx context.Context, database *sql.DB, publicationID int64) ([]domai
 
 	var result []domain.Award
 	for rows.Next() {
-		var awardID int64
 		var award domain.Award
 		var contractID, contractIssueDate string
 		if err := rows.Scan(
-			&awardID, &award.LotID, &award.ResultCode, &award.AwardDate,
+			&award.LotID, &award.State, &award.ResultCode, &award.AwardDate,
 			&award.Winner.Scheme, &award.Winner.ID, &award.Winner.Name,
 			&contractID, &contractIssueDate,
 		); err != nil {
@@ -146,7 +155,7 @@ func awards(ctx context.Context, database *sql.DB, publicationID int64) ([]domai
 		if contractID != "" || contractIssueDate != "" {
 			award.Contract = &domain.Contract{ID: contractID, IssueDate: contractIssueDate}
 		}
-		if award.Amounts, err = awardAmounts(ctx, database, awardID); err != nil {
+		if award.Amounts, err = awardProjectionAmounts(ctx, database, expedienteID, award.LotID); err != nil {
 			return nil, err
 		}
 		result = append(result, award)
@@ -154,14 +163,14 @@ func awards(ctx context.Context, database *sql.DB, publicationID int64) ([]domai
 	return result, rows.Err()
 }
 
-func awardAmounts(ctx context.Context, database *sql.DB, awardID int64) ([]kernel.Money, error) {
+func awardProjectionAmounts(ctx context.Context, database *sql.DB, expedienteID int64, lotID string) ([]kernel.Money, error) {
 	rows, err := database.QueryContext(ctx, `
 		SELECT tax_base, currency, amount_cents
-		FROM award_amount
-		WHERE award_id = ?
-		ORDER BY tax_base`, awardID)
+		FROM award_projection_amount
+		WHERE expediente_id = ? AND lot_id = ?
+		ORDER BY tax_base`, expedienteID, lotID)
 	if err != nil {
-		return nil, fmt.Errorf("read award amounts: %w", err)
+		return nil, fmt.Errorf("read award projection amounts: %w", err)
 	}
 	defer rows.Close()
 
@@ -170,7 +179,66 @@ func awardAmounts(ctx context.Context, database *sql.DB, awardID int64) ([]kerne
 		var base, currency string
 		var cents int64
 		if err := rows.Scan(&base, &currency, &cents); err != nil {
-			return nil, fmt.Errorf("scan award amount: %w", err)
+			return nil, fmt.Errorf("scan award projection amount: %w", err)
+		}
+		amounts = append(amounts, kernel.Money{Cents: cents, Currency: currency, TaxBase: kernel.TaxBase(base)})
+	}
+	return amounts, rows.Err()
+}
+
+// facts reads the lifecycle facts of every revision, newest first. A newer
+// snapshot without a fact does not erase the older one.
+func facts(ctx context.Context, database *sql.DB, expedienteID int64) ([]domain.Fact, error) {
+	rows, err := database.QueryContext(ctx, `
+		SELECT f.id, f.kind, f.external_ref, f.lot_id, COALESCE(f.effective_date, ''),
+		       f.deadline_status, f.delivery_status, f.detail,
+		       p.source, p.external_id, p.url, p.published_at, COALESCE(p.effective_date, '')
+		FROM fact f
+		JOIN publication p ON p.id = f.publication_id
+		WHERE f.expediente_id = ?
+		ORDER BY COALESCE(f.effective_date, '') DESC, julianday(p.published_at) DESC, f.id DESC`, expedienteID)
+	if err != nil {
+		return nil, fmt.Errorf("read facts: %w", err)
+	}
+	defer rows.Close()
+
+	var result []domain.Fact
+	for rows.Next() {
+		var fact domain.Fact
+		var factID int64
+		if err := rows.Scan(
+			&factID, &fact.Kind, &fact.Reference, &fact.LotID, &fact.EffectiveDate,
+			&fact.DeadlineStatus, &fact.DeliveryStatus, &fact.Detail,
+			&fact.Publication.Source, &fact.Publication.ExternalID, &fact.Publication.URL,
+			&fact.Publication.UpdatedAt, &fact.Publication.EffectiveDate,
+		); err != nil {
+			return nil, fmt.Errorf("scan fact: %w", err)
+		}
+		if fact.Amounts, err = factAmounts(ctx, database, factID); err != nil {
+			return nil, err
+		}
+		result = append(result, fact)
+	}
+	return result, rows.Err()
+}
+
+func factAmounts(ctx context.Context, database *sql.DB, factID int64) ([]kernel.Money, error) {
+	rows, err := database.QueryContext(ctx, `
+		SELECT tax_base, currency, amount_cents
+		FROM fact_amount
+		WHERE fact_id = ?
+		ORDER BY tax_base`, factID)
+	if err != nil {
+		return nil, fmt.Errorf("read fact amounts: %w", err)
+	}
+	defer rows.Close()
+
+	var amounts []kernel.Money
+	for rows.Next() {
+		var base, currency string
+		var cents int64
+		if err := rows.Scan(&base, &currency, &cents); err != nil {
+			return nil, fmt.Errorf("scan fact amount: %w", err)
 		}
 		amounts = append(amounts, kernel.Money{Cents: cents, Currency: currency, TaxBase: kernel.TaxBase(base)})
 	}

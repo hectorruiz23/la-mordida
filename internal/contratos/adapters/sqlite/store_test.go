@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -201,10 +200,12 @@ func TestStorePublicationKeepsVersionsAndReplaysIdempotently(t *testing.T) {
 		t.Fatalf("count source publications: %v", err)
 	}
 
+	// The same source instant with other bytes is a second, irreconcilable
+	// revision: both are kept and the identity includes the hash.
 	changedBytes := publication
 	changedBytes.BodyHash = "hash-different"
-	if err := store.StorePublication(ctx, changedBytes); err == nil || !strings.Contains(err.Error(), "different bytes") {
-		t.Fatalf("same version with other bytes: err = %v", err)
+	if err := store.StorePublication(ctx, changedBytes); err != nil {
+		t.Fatalf("same instant with other bytes: %v", err)
 	}
 
 	newer := publication
@@ -218,8 +219,8 @@ func TestStorePublicationKeepsVersionsAndReplaysIdempotently(t *testing.T) {
 	if err := database.QueryRowContext(ctx, `SELECT COUNT(*) FROM publication`).Scan(&versions); err != nil {
 		t.Fatalf("count versions: %v", err)
 	}
-	if versions != 2 {
-		t.Fatalf("publication versions = %d, want 2", versions)
+	if versions != 3 {
+		t.Fatalf("publication versions = %d, want 3", versions)
 	}
 }
 

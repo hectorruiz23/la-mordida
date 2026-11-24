@@ -1,5 +1,6 @@
-// Package sqlite stores the expediente, its lots, awards, amounts, documents
-// and publication versions. It is the only package that knows SQL.
+// Package sqlite stores the expediente, its lots, awards, lifecycle facts,
+// amounts, documents and publication revisions. It is the only contratos
+// package that knows SQL.
 package sqlite
 
 import (
@@ -21,11 +22,22 @@ func New(database *sql.DB) *Store {
 	return &Store{database: database}
 }
 
-// StorePublication writes one immutable publication version and the current
-// expediente state. Replaying the same version is a no-op; the same version
-// with different bytes is refused instead of silently overwritten.
+// StorePublication writes one source revision and, in the same transaction,
+// refreshes the current projection. The revision identity is (source,
+// external id, published instant, body hash):
+//
+//   - an exact replay is a no-op;
+//   - the same instant with other bytes keeps a second revision;
+//   - an older revision is stored beside the newer one but never rewinds the
+//     projection, which follows the newest published revision;
+//   - a source snapshot that omits a field never cancels what an earlier one
+//     stated: only an explicit annulment fact does that.
 func (s *Store) StorePublication(ctx context.Context, publication domain.Publication) error {
-	updatedAt := publication.UpdatedAt.UTC().Format(time.RFC3339Nano)
+	publishedAt := publication.UpdatedAt.UTC().Format(time.RFC3339Nano)
+	observedAt := publication.ObservedAt.UTC()
+	if observedAt.IsZero() {
+		observedAt = time.Now()
+	}
 
 	tx, err := s.database.BeginTx(ctx, nil)
 	if err != nil {
@@ -33,44 +45,34 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 	}
 	defer tx.Rollback()
 
-	var existingID int64
+	// A source may publish two irreconcilable snapshots at the same instant:
+	// the hash is part of the identity, so the row is inserted beside the
+	// first. Only an exact replay short-circuits.
 	var existingHash string
-	err = tx.QueryRowContext(ctx,
-		`SELECT id, body_sha256 FROM publication WHERE source = ? AND external_id = ? AND updated_at = ?`,
-		publication.Source, publication.ExternalID, updatedAt,
-	).Scan(&existingID, &existingHash)
+	err = tx.QueryRowContext(ctx, `
+		SELECT body_sha256 FROM publication
+		WHERE source = ? AND external_id = ? AND published_at = ? AND body_sha256 = ?`,
+		publication.Source, publication.ExternalID, publishedAt, publication.BodyHash,
+	).Scan(&existingHash)
 	switch {
 	case err == nil:
-		if existingHash != publication.BodyHash {
-			return fmt.Errorf("publication %s/%s at %s is already stored with different bytes", publication.Source, publication.ExternalID, updatedAt)
-		}
 		return tx.Commit()
 	case !errors.Is(err, sql.ErrNoRows):
-		return fmt.Errorf("look up publication version: %w", err)
+		return fmt.Errorf("look up publication revision: %w", err)
 	}
 
-	expedienteID, err := upsertExpediente(ctx, tx, publication.Expediente)
+	expedienteID, err := resolveExpediente(ctx, tx, publication, observedAt.Unix())
 	if err != nil {
 		return err
 	}
 
-	for _, lot := range publication.Lots {
-		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO lot (expediente_id, lot_id, object)
-			VALUES (?, ?, ?)
-			ON CONFLICT (expediente_id, lot_id) DO UPDATE SET
-				object = CASE WHEN excluded.object <> '' THEN excluded.object ELSE lot.object END`,
-			expedienteID, lot.ID, lot.Object,
-		); err != nil {
-			return fmt.Errorf("store lot %s: %w", lot.ID, err)
-		}
-	}
-
 	result, err := tx.ExecContext(ctx, `
-		INSERT INTO publication (source, external_id, url, updated_at, body_sha256, imported_at, expediente_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		publication.Source, publication.ExternalID, publication.URL, updatedAt,
-		publication.BodyHash, time.Now().Unix(), expedienteID,
+		INSERT INTO publication (source, external_id, url, published_at, effective_date,
+			observed_at, body_sha256, object, status, expediente_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		publication.Source, publication.ExternalID, publication.URL, publishedAt,
+		nullableDate(publication.EffectiveDate), observedAt.Unix(), publication.BodyHash,
+		publication.Expediente.Object, publication.Expediente.Status, expedienteID,
 	)
 	if err != nil {
 		return fmt.Errorf("store publication: %w", err)
@@ -80,6 +82,9 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		return fmt.Errorf("publication id: %w", err)
 	}
 
+	if err := upsertLots(ctx, tx, expedienteID, publicationID, publication.Lots); err != nil {
+		return err
+	}
 	if err := storeBudgets(ctx, tx, publicationID, "", publication.Expediente.Budget); err != nil {
 		return fmt.Errorf("store expediente budget: %w", err)
 	}
@@ -107,6 +112,12 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		}
 	}
 
+	for position, fact := range publication.Facts {
+		if err := storeFact(ctx, tx, publicationID, expedienteID, position, fact); err != nil {
+			return fmt.Errorf("store fact %d: %w", position, err)
+		}
+	}
+
 	for _, document := range publication.Documents {
 		kind := document.Kind
 		if kind == "" {
@@ -124,34 +135,24 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		}
 	}
 
+	if err := rebuildExpedienteProjection(ctx, tx, expedienteID); err != nil {
+		return err
+	}
+	if err := rebuildAwardProjections(ctx, tx, expedienteID); err != nil {
+		return err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("commit publication: %w", err)
 	}
 	return nil
 }
 
-func upsertExpediente(ctx context.Context, tx *sql.Tx, expediente domain.Expediente) (int64, error) {
-	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO expediente (buyer_scheme, buyer_id, folder_id, buyer_name, object, status)
-		VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT (buyer_scheme, buyer_id, folder_id) DO UPDATE SET
-			buyer_name = CASE WHEN excluded.buyer_name <> '' THEN excluded.buyer_name ELSE expediente.buyer_name END,
-			object     = CASE WHEN excluded.object <> '' THEN excluded.object ELSE expediente.object END,
-			status     = CASE WHEN excluded.status <> '' THEN excluded.status ELSE expediente.status END`,
-		expediente.Buyer.Scheme, expediente.Buyer.ID, expediente.FolderID,
-		expediente.Buyer.Name, expediente.Object, expediente.Status,
-	); err != nil {
-		return 0, fmt.Errorf("store expediente: %w", err)
+func nullableDate(date *kernel.Date) any {
+	if date == nil || date.IsZero() {
+		return nil
 	}
-
-	var id int64
-	if err := tx.QueryRowContext(ctx,
-		`SELECT id FROM expediente WHERE buyer_scheme = ? AND buyer_id = ? AND folder_id = ?`,
-		expediente.Buyer.Scheme, expediente.Buyer.ID, expediente.FolderID,
-	).Scan(&id); err != nil {
-		return 0, fmt.Errorf("read expediente id: %w", err)
-	}
-	return id, nil
+	return date.String()
 }
 
 func storeBudgets(ctx context.Context, tx *sql.Tx, publicationID int64, lotKey string, amounts []kernel.Money) error {
@@ -266,6 +267,46 @@ func storeAward(ctx context.Context, tx *sql.Tx, publicationID, expedienteID int
 			awardID, string(amount.TaxBase), amount.Currency, amount.Cents,
 		); err != nil {
 			return fmt.Errorf("store %s amount: %w", amount.TaxBase, err)
+		}
+	}
+	return nil
+}
+
+func storeFact(ctx context.Context, tx *sql.Tx, publicationID, expedienteID int64, position int, fact domain.Fact) error {
+	deadline := fact.DeadlineStatus
+	if deadline == "" {
+		deadline = domain.ComplianceUnknown
+	}
+	delivery := fact.DeliveryStatus
+	if delivery == "" {
+		delivery = domain.DeliveryUnknown
+	}
+
+	result, err := tx.ExecContext(ctx, `
+		INSERT INTO fact (publication_id, expediente_id, lot_id, kind, external_ref,
+			effective_date, deadline_status, delivery_status, detail, evidence_sha256)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		publicationID, expedienteID, fact.LotID, string(fact.Kind), fact.Ref,
+		nullableDate(fact.EffectiveDate), string(deadline), string(delivery), fact.Detail, fact.EvidenceHash,
+	)
+	if err != nil {
+		return fmt.Errorf("store fact %s %s: %w", fact.Kind, fact.Ref, err)
+	}
+	factID, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("fact id: %w", err)
+	}
+
+	for _, amount := range fact.Amounts {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO fact_amount (fact_id, tax_base, currency, amount_cents)
+			VALUES (?, ?, ?, ?)
+			ON CONFLICT (fact_id, tax_base) DO UPDATE SET
+				currency = excluded.currency,
+				amount_cents = excluded.amount_cents`,
+			factID, string(amount.TaxBase), amount.Currency, amount.Cents,
+		); err != nil {
+			return fmt.Errorf("store fact %s amount: %w", amount.TaxBase, err)
 		}
 	}
 	return nil

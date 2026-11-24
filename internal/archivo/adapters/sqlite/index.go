@@ -25,7 +25,7 @@ func New(database *sql.DB) *Index {
 // URL changed can be downloaded again and keep both versions.
 func (i *Index) Links(ctx context.Context, includeEvidence bool) ([]domain.Link, error) {
 	query := `
-		SELECT p.source, p.external_id, p.updated_at,
+		SELECT p.source, p.external_id, p.published_at,
 		       d.target_kind, d.target_ref, d.url, d.title,
 		       d.state, d.sha256, d.mime, d.obtained_at, d.attempts, d.last_error
 		FROM document_link d
@@ -33,7 +33,7 @@ func (i *Index) Links(ctx context.Context, includeEvidence bool) ([]domain.Link,
 	if !includeEvidence {
 		query += ` WHERE d.state <> 'evidence'`
 	}
-	query += ` ORDER BY p.updated_at, d.id`
+	query += ` ORDER BY julianday(p.published_at), d.id`
 
 	rows, err := i.database.QueryContext(ctx, query)
 	if err != nil {
@@ -163,7 +163,7 @@ func (i *Index) linkID(ctx context.Context, tx *sql.Tx, link domain.Link) (int64
 		SELECT d.id
 		FROM document_link d
 		JOIN publication p ON p.id = d.publication_id
-		WHERE p.source = ? AND p.external_id = ? AND p.updated_at = ?
+		WHERE p.source = ? AND p.external_id = ? AND p.published_at = ?
 		  AND d.target_kind = ? AND d.target_ref = ? AND d.url = ?`,
 		link.Publication.Source, link.Publication.ExternalID,
 		link.Publication.UpdatedAt.UTC().Format(time.RFC3339Nano),

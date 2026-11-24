@@ -94,19 +94,96 @@ type Award struct {
 	Contract   *Contract
 }
 
+// FactKind names a lifecycle fact. An award is kept in Award because it has
+// its own typed result; the other facts are kept with the reference the source
+// gives them. A numeric difference is never labelled a rectification by the
+// importer: the kind is evidence, not an inference.
+type FactKind string
+
+const (
+	FactRectification      FactKind = "rectification"
+	FactExtensionPlanned   FactKind = "extension_planned"
+	FactExtensionExercised FactKind = "extension_exercised"
+	FactAmplification      FactKind = "amplification"
+	FactScopeChange        FactKind = "scope_change"
+	FactReception          FactKind = "reception"
+	FactFinalPayment       FactKind = "final_payment"
+	FactAnnulment          FactKind = "annulment"
+)
+
+func (k FactKind) Valid() bool {
+	switch k {
+	case FactRectification, FactExtensionPlanned, FactExtensionExercised,
+		FactAmplification, FactScopeChange, FactReception, FactFinalPayment, FactAnnulment:
+		return true
+	}
+	return false
+}
+
+// Compliance says whether a deadline was met. Unknown is the zero value and
+// the only value when no evidence exists; it is never derived from the other
+// status.
+type Compliance string
+
+const (
+	ComplianceUnknown Compliance = "unknown"
+	ComplianceOnTime  Compliance = "on_time"
+	ComplianceLate    Compliance = "late"
+)
+
+func (c Compliance) Valid() bool {
+	return c == "" || c == ComplianceUnknown || c == ComplianceOnTime || c == ComplianceLate
+}
+
+// Delivery says whether the object was received. It is kept apart from the
+// deadline: a contract may be delivered late, on time, or with one of the two
+// facts unknown.
+type Delivery string
+
+const (
+	DeliveryUnknown      Delivery = "unknown"
+	DeliveryDelivered    Delivery = "delivered"
+	DeliveryNotDelivered Delivery = "not_delivered"
+)
+
+func (d Delivery) Valid() bool {
+	return d == "" || d == DeliveryUnknown || d == DeliveryDelivered || d == DeliveryNotDelivered
+}
+
+// Fact is one lifecycle fact published by the source. Ref is the source's
+// identifier inside the publication; LotID is empty when the fact concerns the
+// whole procedure. EffectiveDate is a civil date and may be unknown.
+type Fact struct {
+	Kind           FactKind
+	Ref            string
+	LotID          string
+	EffectiveDate  *kernel.Date
+	Amounts        []kernel.Money
+	DeadlineStatus Compliance
+	DeliveryStatus Delivery
+	Detail         string
+	EvidenceHash   string
+}
+
 // Publication is one stored version of a source publication. The same source
 // reference with a newer UpdatedAt is another version, kept beside the first.
+// UpdatedAt is the source's published instant, EffectiveDate is the civil date
+// the revision applies from when the source states one, and ObservedAt is when
+// the importer saw it (a zero value means "when stored").
 type Publication struct {
-	Source     string
-	ExternalID string
-	URL        string
-	UpdatedAt  time.Time
-	BodyHash   string
-	Expediente Expediente
-	Lots       []Lot
-	Awards     []Award
-	Notices    []Notice
-	Documents  []Document
+	Source        string
+	ExternalID    string
+	URL           string
+	UpdatedAt     time.Time
+	EffectiveDate *kernel.Date
+	ObservedAt    time.Time
+	BodyHash      string
+	Expediente    Expediente
+	Lots          []Lot
+	Awards        []Award
+	Notices       []Notice
+	Facts         []Fact
+	Documents     []Document
 }
 
 func (p Publication) Validate() error {
@@ -170,6 +247,30 @@ func (p Publication) Validate() error {
 		}
 		if err := validateMoney(award.Amounts); err != nil {
 			return fmt.Errorf("publication %s/%s: award %d amounts: %w", p.Source, p.ExternalID, index, err)
+		}
+	}
+
+	seenFacts := make(map[string]bool, len(p.Facts))
+	for index, fact := range p.Facts {
+		if !fact.Kind.Valid() {
+			return fmt.Errorf("publication %s/%s: fact %d has unknown kind %q", p.Source, p.ExternalID, index, fact.Kind)
+		}
+		if fact.LotID != "" && !knownLots[fact.LotID] {
+			return fmt.Errorf("publication %s/%s: fact %d cites unknown lot %s", p.Source, p.ExternalID, index, fact.LotID)
+		}
+		if !fact.DeadlineStatus.Valid() {
+			return fmt.Errorf("publication %s/%s: fact %d has unknown deadline status %q", p.Source, p.ExternalID, index, fact.DeadlineStatus)
+		}
+		if !fact.DeliveryStatus.Valid() {
+			return fmt.Errorf("publication %s/%s: fact %d has unknown delivery status %q", p.Source, p.ExternalID, index, fact.DeliveryStatus)
+		}
+		key := string(fact.Kind) + "\x00" + fact.Ref + "\x00" + fact.LotID
+		if seenFacts[key] {
+			return fmt.Errorf("publication %s/%s: duplicate fact %s %s", p.Source, p.ExternalID, fact.Kind, fact.Ref)
+		}
+		seenFacts[key] = true
+		if err := validateMoney(fact.Amounts); err != nil {
+			return fmt.Errorf("publication %s/%s: fact %d amounts: %w", p.Source, p.ExternalID, index, err)
 		}
 	}
 	return nil

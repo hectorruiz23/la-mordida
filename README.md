@@ -29,5 +29,23 @@ pending so a later run retries it. Re-running with `-refresh` downloads a
 stored link again: an URL whose bytes changed keeps both versions, and the same
 bytes from two URLs keep both provenances.
 
+## History
+
+A publication row is one source revision, identified by its source, its
+external publication id, the published instant and the body hash. Replaying an
+exact revision is a no-op; another body at the same instant keeps both
+revisions. Two channels that publish the same photo keep two revisions but
+only one victory.
+
+The expediente (procedure), its buyer and its lots have their own identifiers;
+`buyer_identity` and `expediente_identity` map the external ones. Awards and
+lifecycle facts keep every revision that stated them. The current award and
+the current procedure state are a projection over the newest published
+revision: an older reread never rewinds it, a snapshot that omits a field never
+cancels it, and two irreconcilable values at the same instant leave the disputed
+value indeterminate while both revisions stay stored. An annulment is a
+documented fact, never an inference from silence. Deadline compliance and
+delivery are separate facts, and unknown is a value, not a zero.
+
 The project is in progress; see `AGENTS.md` for the rules a change has to
 follow.

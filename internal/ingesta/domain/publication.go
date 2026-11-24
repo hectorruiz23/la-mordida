@@ -86,17 +86,36 @@ type Notice struct {
 	IssueDates []kernel.Date `json:"issue_dates,omitempty"`
 }
 
+// Event is one lifecycle fact the source states explicitly. Kind is evidence:
+// a numeric difference never becomes "rectification" by itself, and a missing
+// snapshot is never an annulment. Deadline and delivery are separate and
+// unknown is a valid value.
+type Event struct {
+	Kind           string         `json:"kind"`
+	Ref            string         `json:"ref,omitempty"`
+	LotID          string         `json:"lot_id,omitempty"`
+	EffectiveDate  *kernel.Date   `json:"effective_date,omitempty"`
+	Amounts        []kernel.Money `json:"amounts,omitempty"`
+	DeadlineStatus string         `json:"deadline_status,omitempty"`
+	DeliveryStatus string         `json:"delivery_status,omitempty"`
+	Detail         string         `json:"detail,omitempty"`
+	EvidenceHash   string         `json:"evidence_sha256,omitempty"`
+}
+
 // Publication is one snapshot of one expediente as the source publishes it.
 // The same Reference may arrive again with a newer UpdatedAt: those are
-// versions, not separate tenders.
+// versions, not separate tenders. EffectiveDate is the civil date the source
+// states the revision applies from, when it states one.
 type Publication struct {
-	Reference  Reference  `json:"reference"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	Expediente Expediente `json:"expediente"`
-	Lots       []Lot      `json:"lots,omitempty"`
-	Awards     []Award    `json:"awards,omitempty"`
-	Notices    []Notice   `json:"notices,omitempty"`
-	Documents  []Document `json:"documents,omitempty"`
+	Reference     Reference    `json:"reference"`
+	UpdatedAt     time.Time    `json:"updated_at"`
+	EffectiveDate *kernel.Date `json:"effective_date,omitempty"`
+	Expediente    Expediente   `json:"expediente"`
+	Lots          []Lot        `json:"lots,omitempty"`
+	Awards        []Award      `json:"awards,omitempty"`
+	Notices       []Notice     `json:"notices,omitempty"`
+	Events        []Event      `json:"events,omitempty"`
+	Documents     []Document   `json:"documents,omitempty"`
 }
 
 type Expediente struct {
