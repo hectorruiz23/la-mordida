@@ -14,6 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	archivodisk "github.com/hectorruiz23/la-mordida/internal/archivo/adapters/disk"
+	archivohttp "github.com/hectorruiz23/la-mordida/internal/archivo/adapters/http"
+	archivosqlite "github.com/hectorruiz23/la-mordida/internal/archivo/adapters/sqlite"
+	archivoapp "github.com/hectorruiz23/la-mordida/internal/archivo/app"
 	consultashttp "github.com/hectorruiz23/la-mordida/internal/consultas/adapters/http"
 	consultassqlite "github.com/hectorruiz23/la-mordida/internal/consultas/adapters/sqlite"
 	consultasapp "github.com/hectorruiz23/la-mordida/internal/consultas/app"
@@ -30,6 +34,7 @@ const usage = `La Mordida — contratación pública, sin ruido.
 
 Usage:
   contratos import [flags]   importa publicaciones de una fuente
+  contratos archive [flags]  archiva los documentos anunciados
   contratos serve [flags]    sirve las consultas sobre los datos guardados
   contratos version          imprime la versión
 
@@ -38,6 +43,11 @@ Opciones de import:
   -fixture string   fixture neutral local (por defecto testdata/neutral/sample-award.json)
   -from string      solo publicaciones actualizadas desde este instante RFC 3339
   -to string        solo publicaciones actualizadas hasta este instante RFC 3339
+
+Opciones de archive:
+  -db string        fichero SQLite (por defecto contratos.db)
+  -objects string   directorio de objetos (por defecto data/objects)
+  -refresh          vuelve a descargar la evidencia ya guardada
 
 Opciones de serve:
   -db string        fichero SQLite (por defecto contratos.db)
@@ -65,6 +75,8 @@ func run(args []string) error {
 		return nil
 	case "import":
 		return runImport(args[1:])
+	case "archive":
+		return runArchive(args[1:])
 	case "serve":
 		return runServe(args[1:])
 	default:
@@ -113,6 +125,59 @@ func runImport(args []string) error {
 	}
 
 	fmt.Printf("import: %d publicaciones guardadas en %s\n", stored, *dbPath)
+	return nil
+}
+
+func runArchive(args []string) error {
+	flags := flag.NewFlagSet("archive", flag.ContinueOnError)
+	dbPath := flags.String("db", envOr("CONTRATOS_DB", "contratos.db"), "fichero SQLite")
+	objectsPath := flags.String("objects", envOr("CONTRATOS_OBJECTS", "data/objects"), "directorio de objetos")
+	refresh := flags.Bool("refresh", false, "vuelve a descargar la evidencia ya guardada")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 {
+		return fmt.Errorf("archive: argumentos inesperados %v", flags.Args())
+	}
+
+	database, err := db.Open(*dbPath)
+	if err != nil {
+		return err
+	}
+	defer database.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	if err := db.Migrate(ctx, database, migrations.FS); err != nil {
+		return err
+	}
+
+	index := archivosqlite.New(database)
+	links, err := index.Links(ctx, *refresh)
+	if err != nil {
+		return err
+	}
+
+	archiver := archivoapp.New(archivohttp.New(nil), archivodisk.New(*objectsPath), index)
+	archived, pending := 0, 0
+	for _, link := range links {
+		archive := archiver.Archive
+		if *refresh {
+			archive = archiver.Refresh
+		}
+		if _, err := archive(ctx, link); err != nil {
+			pending++
+			fmt.Fprintf(os.Stderr, "archive: %s: %v\n", link.URL, err)
+			continue
+		}
+		archived++
+	}
+
+	fmt.Printf("archive: %d documentos guardados, %d pendientes en %s\n", archived, pending, *objectsPath)
+	if pending > 0 {
+		return fmt.Errorf("archive: %d documentos quedaron pendientes, vuelve a ejecutarlo para reintentar", pending)
+	}
 	return nil
 }
 

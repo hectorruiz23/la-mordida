@@ -14,10 +14,18 @@ type Contract struct {
 	IssueDate string `json:"issue_date,omitempty"`
 }
 
+// Document is a document announced by the publication version and the fact
+// it sustains. State tells an announced link from a pending download and from
+// the evidence whose bytes are stored.
 type Document struct {
-	URL   string `json:"url"`
-	Hash  string `json:"sha256,omitempty"`
-	Title string `json:"title,omitempty"`
+	TargetKind string `json:"target_kind,omitempty"`
+	TargetRef  string `json:"target_ref,omitempty"`
+	URL        string `json:"url"`
+	SHA256     string `json:"sha256,omitempty"`
+	Title      string `json:"title,omitempty"`
+	State      string `json:"state"`
+	MIME       string `json:"mime,omitempty"`
+	ObtainedAt string `json:"obtained_at,omitempty"`
 }
 
 type Publication struct {

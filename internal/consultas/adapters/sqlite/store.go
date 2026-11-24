@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/hectorruiz23/la-mordida/internal/consultas/domain"
 	"github.com/hectorruiz23/la-mordida/internal/kernel"
@@ -178,10 +179,10 @@ func awardAmounts(ctx context.Context, database *sql.DB, awardID int64) ([]kerne
 
 func documents(ctx context.Context, database *sql.DB, publicationID int64) ([]domain.Document, error) {
 	rows, err := database.QueryContext(ctx, `
-		SELECT url, sha256, title
-		FROM document_reference
+		SELECT target_kind, target_ref, url, sha256, title, state, mime, COALESCE(obtained_at, 0)
+		FROM document_link
 		WHERE publication_id = ?
-		ORDER BY url`, publicationID)
+		ORDER BY target_kind, target_ref, url`, publicationID)
 	if err != nil {
 		return nil, fmt.Errorf("read documents: %w", err)
 	}
@@ -190,8 +191,15 @@ func documents(ctx context.Context, database *sql.DB, publicationID int64) ([]do
 	var result []domain.Document
 	for rows.Next() {
 		var document domain.Document
-		if err := rows.Scan(&document.URL, &document.Hash, &document.Title); err != nil {
+		var obtainedAt int64
+		if err := rows.Scan(
+			&document.TargetKind, &document.TargetRef, &document.URL,
+			&document.SHA256, &document.Title, &document.State, &document.MIME, &obtainedAt,
+		); err != nil {
 			return nil, fmt.Errorf("scan document: %w", err)
+		}
+		if obtainedAt > 0 {
+			document.ObtainedAt = time.Unix(obtainedAt, 0).UTC().Format(time.RFC3339)
 		}
 		result = append(result, document)
 	}

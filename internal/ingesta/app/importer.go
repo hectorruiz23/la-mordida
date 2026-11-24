@@ -104,7 +104,13 @@ func toContratos(publication ingestadomain.Publication) (contratosdomain.Publica
 	}
 
 	for _, document := range publication.Documents {
+		kind := document.Kind
+		if kind == "" {
+			kind = "publication"
+		}
 		normalized.Documents = append(normalized.Documents, contratosdomain.Document{
+			Kind:  kind,
+			Ref:   document.Ref,
 			URL:   document.URL,
 			Hash:  document.Hash,
 			Title: document.Title,

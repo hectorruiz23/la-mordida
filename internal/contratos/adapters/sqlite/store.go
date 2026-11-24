@@ -96,11 +96,17 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 	}
 
 	for _, document := range publication.Documents {
+		kind := document.Kind
+		if kind == "" {
+			kind = "publication"
+		}
 		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO document_reference (publication_id, url, sha256, title)
-			VALUES (?, ?, ?, ?)
-			ON CONFLICT (publication_id, url, sha256) DO NOTHING`,
-			publicationID, document.URL, document.Hash, document.Title,
+			INSERT INTO document_link (publication_id, target_kind, target_ref, url, title, state, sha256)
+			VALUES (?, ?, ?, ?, ?, 'announced', ?)
+			ON CONFLICT (publication_id, target_kind, target_ref, url) DO UPDATE SET
+				title  = CASE WHEN excluded.title <> '' THEN excluded.title ELSE document_link.title END,
+				sha256 = CASE WHEN excluded.sha256 <> '' THEN excluded.sha256 ELSE document_link.sha256 END`,
+			publicationID, kind, document.Ref, document.URL, document.Title, document.Hash,
 		); err != nil {
 			return fmt.Errorf("store document %s: %w", document.URL, err)
 		}

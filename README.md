@@ -20,5 +20,14 @@ make verify    # gofmt, build and tests, what CI runs
 ./bin/contratos --help
 ```
 
+## Documents
+
+`import` records every document a publication announces, with the fact it
+sustains. `archive` downloads them into `data/objects/<prefix>/<sha256>`,
+records their MIME type, URL and download date, and leaves a failed download
+pending so a later run retries it. Re-running with `-refresh` downloads a
+stored link again: an URL whose bytes changed keeps both versions, and the same
+bytes from two URLs keep both provenances.
+
 The project is in progress; see `AGENTS.md` for the rules a change has to
 follow.
