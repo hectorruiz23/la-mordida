@@ -44,6 +44,8 @@ type Contract struct {
 }
 
 type Document struct {
+	Kind  string `json:"kind,omitempty"`
+	Ref   string `json:"ref,omitempty"`
 	URL   string `json:"url"`
 	Hash  string `json:"sha256,omitempty"`
 	Title string `json:"title,omitempty"`

@@ -21,7 +21,12 @@ type Contract struct {
 	IssueDate *kernel.Date
 }
 
+// Document is one document a publication announces. Kind names the fact it
+// sustains (publication, expediente, lot or award) and Ref its identifier
+// inside the publication; an empty Kind means the publication itself.
 type Document struct {
+	Kind  string
+	Ref   string
 	URL   string
 	Hash  string
 	Title string
@@ -138,6 +143,21 @@ func (p Publication) Validate() error {
 		knownLots[lot.ID] = true
 		if err := validateMoney(lot.Budget); err != nil {
 			return fmt.Errorf("publication %s/%s: lot %s budget: %w", p.Source, p.ExternalID, lot.ID, err)
+		}
+	}
+
+	for index, document := range p.Documents {
+		if document.URL == "" {
+			return fmt.Errorf("publication %s/%s: document %d has no url", p.Source, p.ExternalID, index)
+		}
+		switch document.Kind {
+		case "", "publication", "expediente":
+		case "lot", "award":
+			if document.Ref == "" {
+				return fmt.Errorf("publication %s/%s: document %d has a %s target without a reference", p.Source, p.ExternalID, index, document.Kind)
+			}
+		default:
+			return fmt.Errorf("publication %s/%s: document %d has unknown target %q", p.Source, p.ExternalID, index, document.Kind)
 		}
 	}
 
