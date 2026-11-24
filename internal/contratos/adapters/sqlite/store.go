@@ -83,9 +83,21 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 	if err := storeBudgets(ctx, tx, publicationID, "", publication.Expediente.Budget); err != nil {
 		return fmt.Errorf("store expediente budget: %w", err)
 	}
+	if err := storeClassification(ctx, tx, publicationID, "expediente", "", publication.Expediente.CPV); err != nil {
+		return fmt.Errorf("store expediente classification: %w", err)
+	}
 	for _, lot := range publication.Lots {
 		if err := storeBudgets(ctx, tx, publicationID, lot.ID, lot.Budget); err != nil {
 			return fmt.Errorf("store lot %s budget: %w", lot.ID, err)
+		}
+		if err := storeClassification(ctx, tx, publicationID, "lote", lot.ID, lot.CPV); err != nil {
+			return fmt.Errorf("store lot %s classification: %w", lot.ID, err)
+		}
+	}
+
+	for position, notice := range publication.Notices {
+		if err := storeNotice(ctx, tx, publicationID, position, notice); err != nil {
+			return fmt.Errorf("store notice %d: %w", position, err)
 		}
 	}
 
@@ -156,6 +168,59 @@ func storeBudgets(ctx context.Context, tx *sql.Tx, publicationID int64, lotKey s
 		}
 	}
 	return nil
+}
+
+func storeClassification(ctx context.Context, tx *sql.Tx, publicationID int64, scope, lotKey string, classification domain.Classification) error {
+	if classification.Source == "" && len(classification.Codes) == 0 {
+		return nil
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO classification (publication_id, scope, lot_key, source, ambiguous, reason)
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		publicationID, scope, lotKey, classification.Source, boolInt(classification.Ambiguous), classification.Reason,
+	); err != nil {
+		return err
+	}
+
+	for position, code := range classification.Codes {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO cpv (publication_id, scope, lot_key, position, code, family, included, reason)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			publicationID, scope, lotKey, position, code.Code, code.Family, boolInt(code.Included), code.Reason,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func storeNotice(ctx context.Context, tx *sql.Tx, publicationID int64, position int, notice domain.Notice) error {
+	if len(notice.IssueDates) == 0 {
+		_, err := tx.ExecContext(ctx, `
+			INSERT INTO notice (publication_id, position, notice_type, medium, issue_index, issue_date)
+			VALUES (?, ?, ?, ?, 0, NULL)`,
+			publicationID, position, notice.Type, notice.Medium,
+		)
+		return err
+	}
+	for index, issueDate := range notice.IssueDates {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO notice (publication_id, position, notice_type, medium, issue_index, issue_date)
+			VALUES (?, ?, ?, ?, ?, ?)`,
+			publicationID, position, notice.Type, notice.Medium, index, issueDate.String(),
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func boolInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
 }
 
 func storeAward(ctx context.Context, tx *sql.Tx, publicationID, expedienteID int64, position int, award domain.Award) error {

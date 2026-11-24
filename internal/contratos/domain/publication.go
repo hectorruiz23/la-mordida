@@ -32,18 +32,54 @@ type Document struct {
 	Title string
 }
 
+// CPV is one published classification code with the family it was selected
+// into, if any. Included and Reason say whether and why it selected the
+// publication, so a code outside the tracked families is kept, not dropped.
+type CPV struct {
+	Code     string
+	Family   string
+	Included bool
+	Reason   string
+}
+
+// Classification is the CPV selection of an expediente or a lot. Source is
+// published, inherited or unknown; Ambiguous marks an inference the source
+// does not support and that must not be added up.
+type Classification struct {
+	Codes     []CPV
+	Source    string
+	Ambiguous bool
+	Reason    string
+}
+
+const (
+	ClassificationPublished = "published"
+	ClassificationInherited = "inherited"
+	ClassificationUnknown   = "unknown"
+)
+
+// Notice is one legal event published in a snapshot. The source does not label
+// corrections, so every published issue date is kept.
+type Notice struct {
+	Type       string
+	Medium     string
+	IssueDates []kernel.Date
+}
+
 type Expediente struct {
 	Buyer    Party
 	FolderID string
 	Object   string
 	Status   string
 	Budget   []kernel.Money
+	CPV      Classification
 }
 
 type Lot struct {
 	ID     string
 	Object string
 	Budget []kernel.Money
+	CPV    Classification
 }
 
 // Award is one TenderResult. LotID is empty for a global award, which is a
@@ -69,6 +105,7 @@ type Publication struct {
 	Expediente Expediente
 	Lots       []Lot
 	Awards     []Award
+	Notices    []Notice
 	Documents  []Document
 }
 

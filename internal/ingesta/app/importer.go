@@ -70,6 +70,7 @@ func toContratos(publication ingestadomain.Publication) (contratosdomain.Publica
 			Object:   publication.Expediente.Object,
 			Status:   publication.Expediente.Status,
 			Budget:   publication.Expediente.Budget,
+			CPV:      toClassification(publication.Expediente.CPV),
 		},
 		Documents: make([]contratosdomain.Document, 0, len(publication.Documents)),
 	}
@@ -79,6 +80,15 @@ func toContratos(publication ingestadomain.Publication) (contratosdomain.Publica
 			ID:     lot.ID,
 			Object: lot.Object,
 			Budget: lot.Budget,
+			CPV:    toClassification(lot.CPV),
+		})
+	}
+
+	for _, notice := range publication.Notices {
+		normalized.Notices = append(normalized.Notices, contratosdomain.Notice{
+			Type:       notice.Type,
+			Medium:     notice.Medium,
+			IssueDates: notice.IssueDates,
 		})
 	}
 
@@ -121,4 +131,21 @@ func toContratos(publication ingestadomain.Publication) (contratosdomain.Publica
 		return contratosdomain.Publication{}, err
 	}
 	return normalized, nil
+}
+
+func toClassification(classification ingestadomain.Classification) contratosdomain.Classification {
+	normalized := contratosdomain.Classification{
+		Source:    classification.Source,
+		Ambiguous: classification.Ambiguous,
+		Reason:    classification.Reason,
+	}
+	for _, code := range classification.Codes {
+		normalized.Codes = append(normalized.Codes, contratosdomain.CPV{
+			Code:     code.Code,
+			Family:   code.Family,
+			Included: code.Included,
+			Reason:   code.Reason,
+		})
+	}
+	return normalized
 }
