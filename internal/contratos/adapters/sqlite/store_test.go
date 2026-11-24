@@ -222,3 +222,114 @@ func TestStorePublicationKeepsVersionsAndReplaysIdempotently(t *testing.T) {
 		t.Fatalf("publication versions = %d, want 2", versions)
 	}
 }
+
+func TestStoreKeepsCPVAndNoticesWhenALaterVersionHasNone(t *testing.T) {
+	store, database := testStore(t)
+	ctx := context.Background()
+
+	publication := samplePublication(t)
+	publication.Expediente.CPV = domain.Classification{
+		Source: domain.ClassificationPublished,
+		Codes: []domain.CPV{{
+			Code: "30237475", Family: "302", Included: true, Reason: "family_selected",
+		}},
+	}
+	publication.Lots[0].CPV = domain.Classification{
+		Source: domain.ClassificationInherited,
+		Reason: "cpv_inherited",
+		Codes: []domain.CPV{{
+			Code: "30237475", Family: "302", Included: true, Reason: "family_inherited",
+		}},
+	}
+	publication.Notices = []domain.Notice{{
+		Type:       "DOC_CN",
+		Medium:     "Perfil del contratante",
+		IssueDates: []kernel.Date{*date(t, "2025-07-16"), *date(t, "2025-07-16")},
+	}, {
+		Type:       "DOC_CAN_ADJ",
+		Medium:     "Perfil del contratante",
+		IssueDates: []kernel.Date{*date(t, "2025-10-20")},
+	}}
+
+	if err := store.StorePublication(ctx, publication); err != nil {
+		t.Fatalf("store publication: %v", err)
+	}
+
+	var firstID int64
+	if err := database.QueryRowContext(ctx, `SELECT id FROM publication WHERE body_sha256 = ?`, publication.BodyHash).Scan(&firstID); err != nil {
+		t.Fatalf("read publication id: %v", err)
+	}
+
+	var classifications, codes, notices int
+	for query, target := range map[string]*int{
+		`SELECT COUNT(*) FROM classification WHERE publication_id = ?`: &classifications,
+		`SELECT COUNT(*) FROM cpv WHERE publication_id = ?`:            &codes,
+		`SELECT COUNT(*) FROM notice WHERE publication_id = ?`:         &notices,
+	} {
+		if err := database.QueryRowContext(ctx, query, firstID).Scan(target); err != nil {
+			t.Fatalf("count %s: %v", query, err)
+		}
+	}
+	if classifications != 2 {
+		t.Errorf("classification rows = %d, want expediente and lot", classifications)
+	}
+	if codes != 2 {
+		t.Errorf("cpv rows = %d, want 2", codes)
+	}
+	if notices != 3 {
+		t.Errorf("notice rows = %d, want 3 (the duplicate IssueDate is kept)", notices)
+	}
+
+	var code, family, reason string
+	var included int
+	if err := database.QueryRowContext(ctx, `
+		SELECT code, family, included, reason FROM cpv
+		WHERE publication_id = ? AND scope = 'expediente'`, firstID,
+	).Scan(&code, &family, &included, &reason); err != nil {
+		t.Fatalf("read cpv: %v", err)
+	}
+	if code != "30237475" || family != "302" || included != 1 || reason != "family_selected" {
+		t.Errorf("cpv = %s / %s / %d / %s", code, family, included, reason)
+	}
+
+	// A correction of an already followed expediente may carry no CPV. It is
+	// still stored as a new version, and the earlier version keeps its CPV.
+	newer := publication
+	newer.UpdatedAt = publication.UpdatedAt.Add(time.Hour)
+	newer.BodyHash = "hash-correction"
+	newer.Expediente.CPV = domain.Classification{Source: domain.ClassificationUnknown, Ambiguous: true, Reason: "cpv_missing"}
+	newer.Lots[0].CPV = domain.Classification{Source: domain.ClassificationUnknown, Ambiguous: true, Reason: "cpv_missing"}
+	newer.Notices = nil
+	if err := store.StorePublication(ctx, newer); err != nil {
+		t.Fatalf("store correction: %v", err)
+	}
+
+	var versions, oldCodes int
+	if err := database.QueryRowContext(ctx, `SELECT COUNT(*) FROM publication`).Scan(&versions); err != nil {
+		t.Fatalf("count versions: %v", err)
+	}
+	if versions != 2 {
+		t.Fatalf("publication versions = %d, want 2", versions)
+	}
+	if err := database.QueryRowContext(ctx, `SELECT COUNT(*) FROM cpv WHERE publication_id = ?`, firstID).Scan(&oldCodes); err != nil {
+		t.Fatalf("count earlier cpv: %v", err)
+	}
+	if oldCodes != 2 {
+		t.Errorf("earlier version cpv rows = %d, want 2", oldCodes)
+	}
+
+	var secondID int64
+	if err := database.QueryRowContext(ctx, `SELECT id FROM publication WHERE body_sha256 = ?`, newer.BodyHash).Scan(&secondID); err != nil {
+		t.Fatalf("read correction id: %v", err)
+	}
+	var source string
+	if err := database.QueryRowContext(ctx, `
+		SELECT source FROM classification
+		WHERE publication_id = ? AND scope = 'expediente'`, secondID,
+	).Scan(&source); err != nil {
+		t.Fatalf("read correction classification: %v", err)
+	}
+	if source != domain.ClassificationUnknown {
+		t.Errorf("correction source = %q, want unknown", source)
+	}
+}
