@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	contratosdomain "github.com/hectorruiz23/la-mordida/internal/contratos/domain"
 	ingestadomain "github.com/hectorruiz23/la-mordida/internal/ingesta/domain"
@@ -21,10 +22,19 @@ type Sink interface {
 type Importer struct {
 	reader Reader
 	sink   Sink
+	runs   RunLog
+	clock  func() time.Time
 }
 
 func NewImporter(reader Reader, sink Sink) *Importer {
-	return &Importer{reader: reader, sink: sink}
+	return &Importer{reader: reader, sink: sink, clock: time.Now}
+}
+
+// NewResumableImporter builds the shared import use case: the same importer
+// serves a historical range and an incremental update, and records the run,
+// its span and the channel cursor.
+func NewResumableImporter(reader Reader, sink Sink, runs RunLog) *Importer {
+	return &Importer{reader: reader, sink: sink, runs: runs, clock: time.Now}
 }
 
 // Run reads the window and returns how many publications it stored.

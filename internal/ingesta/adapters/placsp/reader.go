@@ -103,6 +103,21 @@ func NewArchive(channel Channel, archivePath string, options ...Option) (*Reader
 }
 
 func (r *Reader) Read(ctx context.Context, window app.Window, yield func(domain.Publication) error) error {
+	return r.read(ctx, window, app.Resume{}, yield, nil)
+}
+
+// ReadResumable is the same traversal with two additions: it restarts at the
+// previous run's last whole page and it reports every page it finished. The
+// importer only advances the cursor on that report, so a page interrupted in
+// the middle is read again, never skipped.
+func (r *Reader) ReadResumable(ctx context.Context, window app.Window, resume app.Resume, yield func(domain.Publication) error, onPage func(app.Page) error) error {
+	if onPage == nil {
+		return errors.New("placsp: page callback is required")
+	}
+	return r.read(ctx, window, resume, yield, onPage)
+}
+
+func (r *Reader) read(ctx context.Context, window app.Window, resume app.Resume, yield func(domain.Publication) error, onPage func(app.Page) error) error {
 	if yield == nil {
 		return errors.New("placsp: yield is required")
 	}
@@ -112,9 +127,9 @@ func (r *Reader) Read(ctx context.Context, window app.Window, yield func(domain.
 
 	switch {
 	case r.feedURL != "":
-		return r.readFeed(ctx, window, yield)
+		return r.readFeed(ctx, window, resume, yield, onPage)
 	case r.archivePath != "":
-		return r.readArchive(ctx, window, yield)
+		return r.readArchive(ctx, window, resume, yield, onPage)
 	default:
 		return errors.New("placsp: reader has no source")
 	}
@@ -127,9 +142,11 @@ type pageScan struct {
 	nextHref      string
 	entries       int
 	allBeforeFrom bool
+	lastUpdated   time.Time
+	beforeFrom    []domain.Publication
 }
 
-func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window, yield func(domain.Publication) error) (pageScan, error) {
+func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window, recoverBoundary bool, yield func(domain.Publication) error) (pageScan, error) {
 	decoder := xml.NewDecoder(body)
 	scan := pageScan{allBeforeFrom: true}
 	foundRoot := false
@@ -181,13 +198,22 @@ func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window
 				return scan, err
 			}
 			scan.entries++
+			if scan.lastUpdated.Before(publication.UpdatedAt) {
+				scan.lastUpdated = publication.UpdatedAt
+			}
 			if !window.From.IsZero() && !publication.UpdatedAt.Before(window.From) {
 				scan.allBeforeFrom = false
 			}
-			if inWindow(publication.UpdatedAt, window) {
+			switch {
+			case window.Contains(publication.UpdatedAt):
 				if err := yield(publication); err != nil {
 					return scan, err
 				}
+			case recoverBoundary && !window.From.IsZero() && publication.UpdatedAt.Before(window.From):
+				// Keep the entries just before the cut on this page: the next
+				// revision in the window may need the announcement that
+				// introduced it, and this page is where it is locatable.
+				scan.beforeFrom = append(scan.beforeFrom, publication)
 			}
 			continue
 		}
@@ -197,7 +223,7 @@ func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window
 			if err != nil {
 				return scan, err
 			}
-			if r.onDeletion != nil && inWindow(deletion.When, window) {
+			if r.onDeletion != nil && window.Contains(deletion.When) {
 				if err := r.onDeletion(deletion); err != nil {
 					return scan, err
 				}
@@ -212,6 +238,13 @@ func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window
 
 	if !foundRoot {
 		return scan, errors.New("page carries no Atom feed")
+	}
+	if recoverBoundary && !scan.allBeforeFrom {
+		for _, publication := range scan.beforeFrom {
+			if err := yield(publication); err != nil {
+				return scan, err
+			}
+		}
 	}
 	return scan, nil
 }
@@ -237,9 +270,26 @@ func (r *Reader) translateDeletion(decoder *xml.Decoder, start xml.StartElement)
 	return deletion, nil
 }
 
-func (r *Reader) readFeed(ctx context.Context, window app.Window, yield func(domain.Publication) error) error {
+func (r *Reader) readFeed(ctx context.Context, window app.Window, resume app.Resume, yield func(domain.Publication) error, onPage func(app.Page) error) error {
+	// A feed is served newest first, so two different resumes are possible:
+	//
+	//   - an interrupted run restarts at its last whole page and reads on. The
+	//     page is reprocessed in full (the overlap) and its equal instants are
+	//     read again; identity, not page order, decides what is a duplicate.
+	//   - an incremental run with no page to resume starts at the head and
+	//     treats the time cursor as its lower bound. Widening it by the
+	//     overlap makes two entries with the same instant both visible.
+	start := r.feedURL
+	if resume.Page != "" {
+		if parsed, err := url.Parse(resume.Page); err == nil && (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Host != "" {
+			start = resume.Page
+		}
+	} else if !resume.After.IsZero() && (window.From.IsZero() || resume.After.After(window.From)) {
+		window.From = resume.After
+	}
+
 	visited := make(map[string]bool)
-	current := r.feedURL
+	current := start
 
 	for current != "" {
 		if err := ctx.Err(); err != nil {
@@ -254,10 +304,15 @@ func (r *Reader) readFeed(ctx context.Context, window app.Window, yield func(dom
 		if err != nil {
 			return err
 		}
-		scan, scanErr := r.scanPage(ctx, body, window, yield)
+		scan, scanErr := r.scanPage(ctx, body, window, resume.RecoverBoundary, yield)
 		body.Close()
 		if scanErr != nil {
 			return fmt.Errorf("placsp: feed page %s: %w", current, scanErr)
+		}
+		if onPage != nil {
+			if err := onPage(app.Page{Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries}); err != nil {
+				return err
+			}
 		}
 
 		// The novedades feed is served newest first: a whole page older than
@@ -278,7 +333,7 @@ func (r *Reader) readFeed(ctx context.Context, window app.Window, yield func(dom
 	return nil
 }
 
-func (r *Reader) readArchive(ctx context.Context, window app.Window, yield func(domain.Publication) error) error {
+func (r *Reader) readArchive(ctx context.Context, window app.Window, resume app.Resume, yield func(domain.Publication) error, onPage func(app.Page) error) error {
 	archive, err := zip.OpenReader(r.archivePath)
 	if err != nil {
 		return fmt.Errorf("placsp: open archive %s: %w", r.archivePath, err)
@@ -294,14 +349,31 @@ func (r *Reader) readArchive(ctx context.Context, window app.Window, yield func(
 	if start == "" {
 		start = r.channel.baseMember()
 	}
+	if resume.Page != "" {
+		// Resume at the last whole member. It is read again in full: the
+		// overlap is reprocessed and the store makes it a no-op. Earlier
+		// members were covered by the previous run, so they are not read.
+		start = resume.Page
+	}
 	if _, ok := members[start]; !ok {
-		if r.startMember != "" {
-			return fmt.Errorf("placsp: archive %s has no member %s", r.archivePath, r.startMember)
+		if resume.Page != "" {
+			start = firstAfter(names, resume.Page)
+		} else {
+			if r.startMember != "" {
+				return fmt.Errorf("placsp: archive %s has no member %s", r.archivePath, r.startMember)
+			}
+			start = names[0]
 		}
-		start = names[0]
 	}
 
 	visited := make(map[string]bool)
+	if resume.Page != "" {
+		for _, name := range names {
+			if name < start {
+				visited[name] = true
+			}
+		}
+	}
 	for start != "" {
 		// One generated chain: each member names the page that follows it.
 		// A repeated member inside the same chain is a cycle; a member read
@@ -324,10 +396,15 @@ func (r *Reader) readArchive(ctx context.Context, window app.Window, yield func(
 			if err != nil {
 				return fmt.Errorf("placsp: open archive member %s: %w", current, err)
 			}
-			scan, scanErr := r.scanPage(ctx, stream, window, yield)
+			scan, scanErr := r.scanPage(ctx, stream, window, resume.RecoverBoundary, yield)
 			stream.Close()
 			if scanErr != nil {
 				return fmt.Errorf("placsp: archive member %s: %w", current, scanErr)
+			}
+			if onPage != nil {
+				if err := onPage(app.Page{Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries}); err != nil {
+					return err
+				}
 			}
 
 			// An archive is finite and its members are not guaranteed to be
@@ -370,14 +447,13 @@ func (r *Reader) fetch(ctx context.Context, location string) (io.ReadCloser, err
 	return response.Body, nil
 }
 
-func inWindow(instant time.Time, window app.Window) bool {
-	if !window.From.IsZero() && instant.Before(window.From) {
-		return false
+func firstAfter(names []string, page string) string {
+	for _, name := range names {
+		if name > page {
+			return name
+		}
 	}
-	if !window.To.IsZero() && instant.After(window.To) {
-		return false
-	}
-	return true
+	return ""
 }
 
 func resolveFeedNext(current, href string) (string, error) {
