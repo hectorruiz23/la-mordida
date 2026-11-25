@@ -58,10 +58,15 @@ func (c Cursor) IsZero() bool { return c.LastCompleteAt.IsZero() && c.LastPage =
 
 // Page is one whole page the reader finished. The importer only advances the
 // cursor when it receives one: a page half read is never a resume point.
+// Errors counts the entries of the page the source published but the translator
+// could not represent without guessing; they are recorded, not retried as a
+// failed page, and ErrorDetail keeps the first reason.
 type Page struct {
 	Location    string
 	LastUpdated time.Time
 	Entries     int
+	Errors      int
+	ErrorDetail string
 }
 
 // Resume tells a reader where the previous run stopped. After is an inclusive
@@ -112,6 +117,8 @@ type Run struct {
 	FinishedAt     time.Time
 	Publications   int
 	Pages          int
+	Errors         int
+	ErrorDetail    string
 	Detail         string
 }
 
@@ -127,6 +134,8 @@ type Span struct {
 	State          SpanState
 	Publications   int
 	Pages          int
+	Errors         int
+	ErrorDetail    string
 	LastCompleteAt time.Time
 	LastPage       string
 	Detail         string
@@ -138,6 +147,8 @@ type Progress struct {
 	SpanID       int64
 	Publications int
 	Pages        int
+	Errors       int
+	ErrorDetail  string
 	Cursor       Cursor
 }
 
@@ -162,8 +173,30 @@ type Report struct {
 	UntilExclusive bool
 	Publications   int
 	Pages          int
+	Errors         int
+	ErrorDetail    string
 	Cursor         Cursor
 	Detail         string
+}
+
+// appendDetail keeps the first error reasons of a run without letting the
+// column grow with every skipped entry.
+func appendDetail(current, next string) string {
+	const limit = 2000
+	if current == "" {
+		if len(next) > limit {
+			return next[:limit]
+		}
+		return next
+	}
+	if len(current) >= limit {
+		return current
+	}
+	joined := current + "; " + next
+	if len(joined) > limit {
+		return joined[:limit]
+	}
+	return joined
 }
 
 // Import runs the reader over the requested period and records the run, its
@@ -261,6 +294,10 @@ func (i *Importer) Import(ctx context.Context, request Request) (Report, error) 
 	onPage := func(page Page) error {
 		progress.Pages++
 		progress.Publications = stored
+		progress.Errors += page.Errors
+		if page.ErrorDetail != "" {
+			progress.ErrorDetail = appendDetail(progress.ErrorDetail, page.ErrorDetail)
+		}
 		if !page.LastUpdated.IsZero() && page.LastUpdated.After(progress.Cursor.LastCompleteAt) {
 			progress.Cursor.LastCompleteAt = page.LastUpdated
 		}
@@ -299,6 +336,8 @@ func (i *Importer) Import(ctx context.Context, request Request) (Report, error) 
 
 	report.Publications = stored
 	report.Pages = progress.Pages
+	report.Errors = progress.Errors
+	report.ErrorDetail = progress.ErrorDetail
 	report.Cursor = progress.Cursor
 
 	if readErr != nil {

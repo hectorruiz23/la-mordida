@@ -172,9 +172,9 @@ func runImport(args []string) error {
 		return importErr
 	}
 
-	fmt.Printf("import: %s %s: %s, %d publicaciones, %d páginas, punto %s en %s\n",
-		report.Source, kind, describeSpan(report.Span), report.Publications, report.Pages,
-		formatCursor(report.Cursor), *dbPath)
+	fmt.Printf("import: %s %s: %s, %d publicaciones, %d errores, %d páginas, punto %s en %s\n",
+		report.Source, kind, describeSpan(report.Span), report.Publications, report.Errors,
+		report.Pages, formatCursor(report.Cursor), *dbPath)
 	return nil
 }
 
@@ -218,9 +218,9 @@ func printCoverage(ctx context.Context, runs ingestaapp.RunLog, source string) e
 	}
 	fmt.Printf("cobertura %s:\n", source)
 	for _, span := range spans {
-		fmt.Printf("  %s %s: %s, %d publicaciones, %d páginas, punto %s\n",
+		fmt.Printf("  %s %s: %s, %d publicaciones, %d errores, %d páginas, punto %s\n",
 			formatPeriod(span.PeriodFrom, span.PeriodUntil, span.UntilExclusive),
-			span.Kind, describeSpan(span.State), span.Publications, span.Pages,
+			span.Kind, describeSpan(span.State), span.Publications, span.Errors, span.Pages,
 			formatCursor(ingestaapp.Cursor{LastCompleteAt: span.LastCompleteAt, LastPage: span.LastPage}))
 	}
 	return nil

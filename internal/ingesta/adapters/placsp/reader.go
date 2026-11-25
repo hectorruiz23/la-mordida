@@ -141,6 +141,8 @@ func (r *Reader) read(ctx context.Context, window app.Window, resume app.Resume,
 type pageScan struct {
 	nextHref      string
 	entries       int
+	errors        int
+	errorDetail   string
 	allBeforeFrom bool
 	lastUpdated   time.Time
 	beforeFrom    []domain.Publication
@@ -193,11 +195,18 @@ func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window
 			if err != nil {
 				return scan, err
 			}
+			scan.entries++
 			publication, err := r.translate(entry)
 			if err != nil {
-				return scan, err
+				// One publication whose fields cannot be represented without
+				// guessing must not discard the whole page. The reason is kept
+				// on the run so coverage can show the gap instead of hide it.
+				scan.errors++
+				if scan.errorDetail == "" {
+					scan.errorDetail = err.Error()
+				}
+				continue
 			}
-			scan.entries++
 			if scan.lastUpdated.Before(publication.UpdatedAt) {
 				scan.lastUpdated = publication.UpdatedAt
 			}
@@ -310,7 +319,10 @@ func (r *Reader) readFeed(ctx context.Context, window app.Window, resume app.Res
 			return fmt.Errorf("placsp: feed page %s: %w", current, scanErr)
 		}
 		if onPage != nil {
-			if err := onPage(app.Page{Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries}); err != nil {
+			if err := onPage(app.Page{
+				Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries,
+				Errors: scan.errors, ErrorDetail: scan.errorDetail,
+			}); err != nil {
 				return err
 			}
 		}
@@ -402,7 +414,10 @@ func (r *Reader) readArchive(ctx context.Context, window app.Window, resume app.
 				return fmt.Errorf("placsp: archive member %s: %w", current, scanErr)
 			}
 			if onPage != nil {
-				if err := onPage(app.Page{Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries}); err != nil {
+				if err := onPage(app.Page{
+					Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries,
+					Errors: scan.errors, ErrorDetail: scan.errorDetail,
+				}); err != nil {
 					return err
 				}
 			}
