@@ -52,6 +52,21 @@ func (h *Handler) Ranking(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, ranking)
 }
 
+// Rebates serves the comparable rebates of one buyer and award period.
+func (h *Handler) Rebates(w http.ResponseWriter, r *http.Request) {
+	query, err := rankingQuery(r)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "consulta no válida: revisa el organismo, las fechas y la página"})
+		return
+	}
+	rebates, err := h.service.Rebates(r.Context(), query)
+	if err != nil {
+		writeReadingError(w, "rebates", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, rebates)
+}
+
 // Awards serves the justifying list of one ranked entity.
 func (h *Handler) Awards(w http.ResponseWriter, r *http.Request) {
 	query, err := rankingQuery(r)

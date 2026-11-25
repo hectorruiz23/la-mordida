@@ -28,6 +28,10 @@ func (f fakeStore) Awards(context.Context, domain.RankingQuery, string) (domain.
 	return domain.AwardPage{}, nil
 }
 
+func (f fakeStore) Rebates(context.Context, domain.RankingQuery) (domain.RebateRanking, error) {
+	return domain.RebateRanking{}, nil
+}
+
 func TestListServesImportedExpedienteWithExactAmounts(t *testing.T) {
 	handler := New(app.New(fakeStore{expedientes: []domain.Expediente{{
 		Buyer:    domain.Party{Scheme: "NIF", ID: "P3704600J", Name: "Alcaldía del Ayuntamiento de Béjar"},
