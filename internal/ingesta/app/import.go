@@ -58,10 +58,14 @@ func (c Cursor) IsZero() bool { return c.LastCompleteAt.IsZero() && c.LastPage =
 
 // Page is one whole page the reader finished. The importer only advances the
 // cursor when it receives one: a page half read is never a resume point.
+// Errors counts the entries of the page the source published but the translator
+// could not represent without guessing; ErrorDetail keeps the first reason.
 type Page struct {
 	Location    string
 	LastUpdated time.Time
 	Entries     int
+	Errors      int
+	ErrorDetail string
 }
 
 // Resume tells a reader where the previous run stopped. After is an inclusive
@@ -157,6 +161,7 @@ type Progress struct {
 	Errors       int
 	Exclusions   map[string]int
 	Pages        int
+	ErrorDetail  string
 	Cursor       Cursor
 }
 
@@ -300,6 +305,14 @@ func (i *Importer) Import(ctx context.Context, request Request) (Report, error) 
 	onPage := func(page Page) error {
 		progress.Pages++
 		progress.Publications = stored
+		// An entry the reader skipped was seen and is neither accepted nor
+		// excluded, so it counts on both sides of seen = accepted + excluded +
+		// errors.
+		progress.Seen += page.Errors
+		progress.Errors += page.Errors
+		if page.ErrorDetail != "" && progress.ErrorDetail == "" {
+			progress.ErrorDetail = page.ErrorDetail
+		}
 		if !page.LastUpdated.IsZero() && page.LastUpdated.After(progress.Cursor.LastCompleteAt) {
 			progress.Cursor.LastCompleteAt = page.LastUpdated
 		}
@@ -364,7 +377,11 @@ func (i *Importer) Import(ctx context.Context, request Request) (Report, error) 
 	// A completed run has no page to resume inside: the time cursor is the
 	// whole point and the next load is a fresh incremental read from the head.
 	progress.Cursor.LastPage = ""
-	if err := i.runs.Finish(ctx, run, progress, SpanComplete, ""); err != nil {
+	detail := ""
+	if progress.Errors > 0 {
+		detail = fmt.Sprintf("%d entradas no representables: %s", progress.Errors, progress.ErrorDetail)
+	}
+	if err := i.runs.Finish(ctx, run, progress, SpanComplete, detail); err != nil {
 		return report, err
 	}
 	report.State = RunCompleted

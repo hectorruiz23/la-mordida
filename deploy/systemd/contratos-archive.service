@@ -1,0 +1,23 @@
+[Unit]
+Description=La Mordida - archivo de los documentos anunciados
+Documentation=file:/opt/la-mordida/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=contratos
+Group=contratos
+EnvironmentFile=/etc/la-mordida/contratos.env
+ExecStart=/usr/bin/flock -w 7200 /var/lib/la-mordida/write.lock /opt/la-mordida/contratos archive -db ${CONTRATOS_DB} -objects ${CONTRATOS_OBJECTS}
+TimeoutStartSec=2h
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/la-mordida
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX

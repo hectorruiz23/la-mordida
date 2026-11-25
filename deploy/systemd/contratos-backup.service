@@ -1,0 +1,18 @@
+[Unit]
+Description=La Mordida - copia consistente de SQLite y objetos
+Documentation=file:/opt/la-mordida/README.md
+
+[Service]
+Type=oneshot
+User=contratos
+Group=contratos
+EnvironmentFile=/etc/la-mordida/contratos.env
+ExecStart=/opt/la-mordida/backup.sh
+TimeoutStartSec=1h
+Nice=10
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/la-mordida /var/backups/la-mordida

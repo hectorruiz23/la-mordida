@@ -1,0 +1,24 @@
+[Unit]
+Description=La Mordida - importacion incremental del canal %i
+Documentation=file:/opt/la-mordida/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=contratos
+Group=contratos
+EnvironmentFile=/etc/la-mordida/contratos.env
+EnvironmentFile=/etc/la-mordida/channels/%i.env
+ExecStart=/usr/bin/flock -w 7200 /var/lib/la-mordida/write.lock /opt/la-mordida/contratos import -db ${CONTRATOS_DB} -channel %i -feed ${CONTRATOS_FEED} -since-last
+TimeoutStartSec=2h
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/la-mordida
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
