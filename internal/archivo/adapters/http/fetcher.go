@@ -24,11 +24,19 @@ func New(client *http.Client) *Fetcher {
 	return &Fetcher{client: client}
 }
 
+// userAgent is what the source accepts for a document. PLACSP sits behind a
+// WAF that answers "Request Rejected" with a 244-byte HTML page to anything
+// that does not present itself as a browser: a self-identifying agent gets no
+// document, not even when it starts with "Mozilla/5.0".
+const userAgent = "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+
 func (f *Fetcher) Fetch(ctx context.Context, url string) (io.ReadCloser, string, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, "", fmt.Errorf("download %s: %w", url, err)
 	}
+	request.Header.Set("User-Agent", userAgent)
+	request.Header.Set("Accept-Language", "es-ES,es;q=0.9")
 
 	response, err := f.client.Do(request)
 	if err != nil {

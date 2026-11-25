@@ -194,6 +194,12 @@ was never imported has no span: it is missing coverage, not a measured zero.
 * The platform starts some channels later than 2020 (`1044` in 2016, `1143` in
   2018), so a 2020 start is inside their published range; bodies joined
   progressively, so a body with no rows is unknown coverage, not zero.
+* PLACSP serves a document only to a browser-like user agent: its WAF answers
+  `Request Rejected` (a 244-byte `text/html` page) to anything else, including
+  an honest `Mozilla/5.0 (compatible; la-mordida/1)` agent. The archiver
+  presents a browser agent for that reason. A document that is still rejected
+  is not recorded as evidence: it stays pending with its reason and the daily
+  timer retries it.
 * The selection is what makes the load fit: the same January 2020 archive that
   used to leave 53.447 expedientes and 195 MB leaves a few thousand rows and a
   few MB, because what is not technological is counted and dropped. The report
