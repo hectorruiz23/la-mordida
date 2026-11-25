@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"time"
 
 	"github.com/hectorruiz23/la-mordida/internal/ingesta/app"
 	"github.com/hectorruiz23/la-mordida/internal/ingesta/domain"
@@ -48,10 +49,7 @@ func (p *Publisher) Read(ctx context.Context, window app.Window, yield func(doma
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		if !window.From.IsZero() && publication.UpdatedAt.Before(window.From) {
-			continue
-		}
-		if !window.To.IsZero() && publication.UpdatedAt.After(window.To) {
+		if !window.Contains(publication.UpdatedAt) {
 			continue
 		}
 		if err := yield(publication); err != nil {
@@ -59,4 +57,24 @@ func (p *Publisher) Read(ctx context.Context, window app.Window, yield func(doma
 		}
 	}
 	return nil
+}
+
+// ReadResumable treats the whole file as one page: a fixture is small enough
+// that a half read file is simply read again, and the store's revision
+// identity makes the overlap harmless.
+func (p *Publisher) ReadResumable(ctx context.Context, window app.Window, resume app.Resume, yield func(domain.Publication) error, onPage func(app.Page) error) error {
+	if onPage == nil {
+		return fmt.Errorf("fixture: page callback is required")
+	}
+	last := time.Time{}
+	wrapped := func(publication domain.Publication) error {
+		if publication.UpdatedAt.After(last) {
+			last = publication.UpdatedAt
+		}
+		return yield(publication)
+	}
+	if err := p.Read(ctx, window, wrapped); err != nil {
+		return err
+	}
+	return onPage(app.Page{Location: p.path, LastUpdated: last})
 }

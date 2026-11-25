@@ -47,5 +47,38 @@ value indeterminate while both revisions stay stored. An annulment is a
 documented fact, never an inference from silence. Deadline compliance and
 delivery are separate facts, and unknown is a value, not a zero.
 
+## Loads and coverage
+
+`import` serves two loads through the same use case. A historical range is
+half-open on dates:
+
+```
+./bin/contratos import -db contratos.db -archive history.zip \
+    -channel sindicacion_643 -from 2020-01-01 -until 2021-01-01
+```
+
+An incremental update resumes from the channel cursor, widening it by the
+overlap so a boundary instant and a late revision are read again:
+
+```
+./bin/contratos import -db contratos.db -feed https://example.test/feed.atom \
+    -channel sindicacion_643 -since-last
+```
+
+Every run persists `import_run` and the `import_span` it covered, with the
+requested period, the counters and the last whole point. A run interrupted on
+the second page keeps the first page as its resume point and the retry starts
+there again; the store's revision identity makes the overlap a no-op, so a
+retry ends with the same rows as a clean load. The feed is resumed at its last
+whole page, never mid-page, and two entries with the same instant are
+reprocessed together rather than split by the cursor.
+
+A span is `complete` (the period was walked end to end, even when it yielded
+zero publications), `partial` (whole pages were recorded before the run
+stopped) or `gap` (it stopped before covering anything). `-coverage` prints
+them, so a measured zero is not mistaken for missing coverage. One importer may
+run at a time, enforced by the database; SQLite keeps foreign keys on, WAL on
+and a bounded busy timeout, so reads continue while a load writes.
+
 The project is in progress; see `AGENTS.md` for the rules a change has to
 follow.
