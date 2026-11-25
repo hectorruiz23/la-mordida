@@ -279,7 +279,8 @@ func writeArchiveFixture(t *testing.T, path, firstURL, secondURL string) {
         "folder_id": "A/2025",
         "status": "ADJ",
         "buyer": {"scheme": "NIF", "id": "P3704600J", "name": "Ayuntamiento"},
-        "budget": [{"amount": "100", "currency": "EUR", "tax_base": "tax_exclusive"}]
+        "budget": [{"amount": "100", "currency": "EUR", "tax_base": "tax_exclusive"}],
+        "cpv": {"source": "published", "included": true, "codes": [{"code": "30200000", "family": "302", "included": true, "reason": "family_selected"}]}
       },
       "documents": [%s]
     }

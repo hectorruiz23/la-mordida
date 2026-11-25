@@ -43,7 +43,20 @@ func announcedPublication(t *testing.T) contratosdomain.Publication {
 		Expediente: contratosdomain.Expediente{
 			Buyer:    contratosdomain.Party{Scheme: "NIF", ID: "P3704600J", Name: "Ayuntamiento"},
 			FolderID: "1787/2025",
+			CPV: contratosdomain.Classification{
+				Source:   contratosdomain.ClassificationPublished,
+				Included: true,
+				Codes:    []contratosdomain.CPV{{Code: "30200000", Family: "302", Included: true, Reason: "family_selected"}},
+			},
 		},
+		Lots: []contratosdomain.Lot{{
+			ID: "1",
+			CPV: contratosdomain.Classification{
+				Source:   contratosdomain.ClassificationPublished,
+				Included: true,
+				Codes:    []contratosdomain.CPV{{Code: "72200000", Family: "72", Included: true, Reason: "family_selected"}},
+			},
+		}},
 		Documents: []contratosdomain.Document{
 			{
 				Kind:  "lot",

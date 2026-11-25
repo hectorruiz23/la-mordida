@@ -61,6 +61,25 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		return fmt.Errorf("look up publication revision: %w", err)
 	}
 
+	enter, filter, err := admit(ctx, tx, publication)
+	if err != nil {
+		return err
+	}
+	if !enter {
+		// An excluded unit leaves no trace: no expediente, no publication, no
+		// amount and no document link. The importer counts it before this
+		// point; the store enforces the same rule for a direct caller.
+		return nil
+	}
+	includedLots := map[string]bool(nil)
+	if filter {
+		includedLots = publication.IncludedLots()
+	}
+	lots := publication.Lots
+	if filter {
+		lots = includedLotsOf(publication.Lots, includedLots)
+	}
+
 	expedienteID, err := resolveExpediente(ctx, tx, publication, observedAt.Unix())
 	if err != nil {
 		return err
@@ -82,7 +101,7 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		return fmt.Errorf("publication id: %w", err)
 	}
 
-	if err := upsertLots(ctx, tx, expedienteID, publicationID, publication.Lots); err != nil {
+	if err := upsertLots(ctx, tx, expedienteID, publicationID, lots); err != nil {
 		return err
 	}
 	if err := storeBudgets(ctx, tx, publicationID, "", publication.Expediente.Budget); err != nil {
@@ -91,7 +110,7 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 	if err := storeClassification(ctx, tx, publicationID, "expediente", "", publication.Expediente.CPV); err != nil {
 		return fmt.Errorf("store expediente classification: %w", err)
 	}
-	for _, lot := range publication.Lots {
+	for _, lot := range lots {
 		if err := storeBudgets(ctx, tx, publicationID, lot.ID, lot.Budget); err != nil {
 			return fmt.Errorf("store lot %s budget: %w", lot.ID, err)
 		}
@@ -106,19 +125,30 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		}
 	}
 
+	keptAwards := 0
 	for position, award := range publication.Awards {
+		if filter && !unitIncluded(award.LotID, publication, includedLots) {
+			continue
+		}
 		if err := storeAward(ctx, tx, publicationID, expedienteID, position, award); err != nil {
 			return fmt.Errorf("store award %d: %w", position, err)
 		}
+		keptAwards++
 	}
 
 	for position, fact := range publication.Facts {
+		if filter && !unitIncluded(fact.LotID, publication, includedLots) {
+			continue
+		}
 		if err := storeFact(ctx, tx, publicationID, expedienteID, position, fact); err != nil {
 			return fmt.Errorf("store fact %d: %w", position, err)
 		}
 	}
 
 	for _, document := range publication.Documents {
+		if filter && !documentIncluded(document, includedLots, keptAwards > 0) {
+			continue
+		}
 		kind := document.Kind
 		if kind == "" {
 			kind = "publication"
@@ -146,6 +176,91 @@ func (s *Store) StorePublication(ctx context.Context, publication domain.Publica
 		return fmt.Errorf("commit publication: %w", err)
 	}
 	return nil
+}
+
+// Followed says whether the source publication already maps to a stored
+// procedure, either through its own identity or through the buyer and folder
+// pair another channel used before.
+func (s *Store) Followed(ctx context.Context, publication domain.Publication) (bool, error) {
+	return followed(ctx, s.database, publication)
+}
+
+type queryRower interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
+func followed(ctx context.Context, queryer queryRower, publication domain.Publication) (bool, error) {
+	var found bool
+	err := queryer.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM expediente e
+			WHERE EXISTS (
+					SELECT 1 FROM expediente_identity i
+					WHERE i.expediente_id = e.id
+					  AND i.source = ? AND i.external_id = ?)
+			   OR (e.buyer_ref = (
+						SELECT buyer_id FROM buyer_identity
+						WHERE scheme = ? AND external_id = ?)
+				   AND e.folder_id = ?)
+			   OR (e.buyer_scheme = ? AND e.buyer_id = ? AND e.folder_id = ?))`,
+		publication.Source, publication.ExternalID,
+		publication.Expediente.Buyer.Scheme, publication.Expediente.Buyer.ID,
+		publication.Expediente.FolderID,
+		publication.Expediente.Buyer.Scheme, publication.Expediente.Buyer.ID,
+		publication.Expediente.FolderID,
+	).Scan(&found)
+	if err != nil {
+		return false, fmt.Errorf("look up followed expediente: %w", err)
+	}
+	return found, nil
+}
+
+// admit decides the revision and whether its excluded lots have to be left
+// out. A followed procedure applies every correction, even one that publishes
+// no CPV, so its revision is stored whole; a new unit only enters through a
+// selected family and drops the lots that do not belong to one.
+func admit(ctx context.Context, tx *sql.Tx, publication domain.Publication) (bool, bool, error) {
+	if publication.Admission().Store {
+		return true, true, nil
+	}
+	exists, err := followed(ctx, tx, publication)
+	if err != nil {
+		return false, false, err
+	}
+	if exists {
+		return true, false, nil
+	}
+	return false, false, nil
+}
+
+func includedLotsOf(lots []domain.Lot, included map[string]bool) []domain.Lot {
+	kept := make([]domain.Lot, 0, len(lots))
+	for _, lot := range lots {
+		if included[lot.ID] {
+			kept = append(kept, lot)
+		}
+	}
+	return kept
+}
+
+// unitIncluded says whether an award or fact belongs to a kept scope. A global
+// one (no lot) belongs to the expediente; a lot one belongs to its lot.
+func unitIncluded(lotID string, publication domain.Publication, includedLots map[string]bool) bool {
+	if lotID == "" {
+		return publication.Expediente.CPV.Includes()
+	}
+	return includedLots[lotID]
+}
+
+func documentIncluded(document domain.Document, includedLots map[string]bool, hasAward bool) bool {
+	switch document.Kind {
+	case "lot":
+		return includedLots[document.Ref]
+	case "award":
+		return hasAward
+	default:
+		return true
+	}
 }
 
 func nullableDate(date *kernel.Date) any {

@@ -21,16 +21,27 @@ type CoverageSource struct {
 }
 
 // CoverageSpan is one recorded load: its kind, its half-open period, the
-// state it reached and its counters.
+// state it reached and its counters. Seen = Publications + Excluded + Errors:
+// a publication is either accepted, left out for a stated reason, or failed.
 type CoverageSpan struct {
-	Kind           string `json:"kind"`
-	PeriodFrom     string `json:"period_from,omitempty"`
-	PeriodUntil    string `json:"period_until,omitempty"`
-	UntilExclusive bool   `json:"until_exclusive"`
-	State          string `json:"state"`
-	Publications   int    `json:"publications"`
-	Pages          int    `json:"pages"`
-	LastCompleteAt string `json:"last_complete_at,omitempty"`
-	LastPage       string `json:"last_page,omitempty"`
-	Detail         string `json:"detail,omitempty"`
+	Kind           string              `json:"kind"`
+	PeriodFrom     string              `json:"period_from,omitempty"`
+	PeriodUntil    string              `json:"period_until,omitempty"`
+	UntilExclusive bool                `json:"until_exclusive"`
+	State          string              `json:"state"`
+	Seen           int                 `json:"seen"`
+	Publications   int                 `json:"publications"`
+	Excluded       int                 `json:"excluded"`
+	Errors         int                 `json:"errors"`
+	Exclusions     []CoverageExclusion `json:"exclusions,omitempty"`
+	Pages          int                 `json:"pages"`
+	LastCompleteAt string              `json:"last_complete_at,omitempty"`
+	LastPage       string              `json:"last_page,omitempty"`
+	Detail         string              `json:"detail,omitempty"`
+}
+
+// CoverageExclusion is how many publications were left out for one reason.
+type CoverageExclusion struct {
+	Reason string `json:"reason"`
+	Units  int    `json:"units"`
 }

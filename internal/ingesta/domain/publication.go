@@ -53,7 +53,8 @@ type Document struct {
 
 // CPV is one published classification code. Code keeps the source spelling;
 // Family is the selected family the code fell into and Reason says why. A code
-// outside every selected family is kept with Included false, not dropped.
+// outside every selected family stays in the classification with Included
+// false as evidence, but the unit it classifies does not enter the database.
 type CPV struct {
 	Code     string `json:"code"`
 	Family   string `json:"family,omitempty"`
@@ -63,12 +64,15 @@ type CPV struct {
 
 // Classification is the CPV selection of one scope. Source says whether the
 // codes were published for that scope, inherited from the expediente or are
-// unknown; Ambiguous marks an inference the source does not support.
+// unknown; Ambiguous marks an inference the source does not support. Included
+// is the scope decision: true when at least one published code belongs to a
+// selected family.
 type Classification struct {
 	Codes     []CPV  `json:"codes,omitempty"`
 	Source    string `json:"source"`
 	Ambiguous bool   `json:"ambiguous,omitempty"`
 	Reason    string `json:"reason,omitempty"`
+	Included  bool   `json:"included"`
 }
 
 const (

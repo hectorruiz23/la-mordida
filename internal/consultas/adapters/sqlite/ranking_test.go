@@ -10,6 +10,7 @@ import (
 
 	"github.com/hectorruiz23/la-mordida/internal/consultas/domain"
 	contratossqlite "github.com/hectorruiz23/la-mordida/internal/contratos/adapters/sqlite"
+	contratosapp "github.com/hectorruiz23/la-mordida/internal/contratos/app"
 	fixture "github.com/hectorruiz23/la-mordida/internal/ingesta/adapters/fixture"
 	ingestaapp "github.com/hectorruiz23/la-mordida/internal/ingesta/app"
 	"github.com/hectorruiz23/la-mordida/internal/platform/db"
@@ -34,7 +35,7 @@ func rankingFixture(t *testing.T) (*sql.DB, *Store) {
 		t.Fatal("cannot locate the test file")
 	}
 	path := filepath.Join(filepath.Dir(file), "..", "..", "..", "..", "testdata", "consultas", "ranking.json")
-	importer := ingestaapp.NewImporter(fixture.New(path), contratossqlite.New(database))
+	importer := ingestaapp.NewImporter(fixture.New(path), contratosapp.NewImporter(contratossqlite.New(database)))
 	if _, err := importer.Run(ctx, ingestaapp.Window{}); err != nil {
 		t.Fatalf("import fixture: %v", err)
 	}

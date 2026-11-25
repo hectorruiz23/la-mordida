@@ -36,25 +36,31 @@
   <summary>Fuentes y periodos</summary>
   <div class="coverage-panel">
     {{if .Sources}}
-      <p class="coverage-intro">Canales importados, intervalo cubierto y estado de cada carga.</p>
+      <p class="coverage-intro">Canales importados, intervalo cubierto y estado de cada carga. Vistas = aceptadas + excluidas + errores.</p>
       {{range .Sources}}
-        <section class="coverage-source">
+        <section class="coverage-source" data-source="{{.Source}}">
           <h3>{{.Source}}</h3>
           <table>
             <thead>
-              <tr><th>Carga</th><th>Intervalo</th><th>Estado</th><th>Publicaciones</th><th>Páginas</th><th>Último punto</th></tr>
+              <tr><th>Carga</th><th>Intervalo</th><th>Estado</th><th>Vistas</th><th>Aceptadas</th><th>Excluidas</th><th>Errores</th><th>Páginas</th><th>Último punto</th></tr>
             </thead>
             <tbody>
               {{range .Spans}}
-                <tr>
+                <tr data-span="{{.StateClass}}" data-seen="{{.Seen}}" data-accepted="{{.Accepted}}" data-excluded="{{.Excluded}}" data-errors="{{.Errors}}">
                   <td>{{.Kind}}</td>
                   <td>{{.Period}}</td>
                   <td><span class="state state-{{.StateClass}}">{{.State}}</span></td>
-                  <td>{{.Publications}}</td>
+                  <td data-field="seen">{{.Seen}}</td>
+                  <td data-field="accepted">{{.Accepted}}</td>
+                  <td data-field="excluded">{{.Excluded}}</td>
+                  <td data-field="errors">{{.Errors}}</td>
                   <td>{{.Pages}}</td>
                   <td>{{if .LastPoint}}{{.LastPoint}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
                 </tr>
-                {{if .Detail}}<tr class="coverage-detail"><td colspan="6">{{.Detail}}</td></tr>{{end}}
+                {{if .Exclusions}}<tr class="coverage-exclusions"><td colspan="9">Excluidas por motivo:
+                  {{range .Exclusions}}<span data-exclusion-reason="{{.Reason}}" data-exclusion-units="{{.Units}}">{{.Label}}: {{.Units}}</span>{{end}}
+                </td></tr>{{end}}
+                {{if .Detail}}<tr class="coverage-detail"><td colspan="9">{{.Detail}}</td></tr>{{end}}
               {{end}}
             </tbody>
           </table>

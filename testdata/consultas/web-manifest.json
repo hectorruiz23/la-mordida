@@ -94,5 +94,18 @@
       ]
     }
   },
-  "coverage_sources": ["consultas-ranking", "consultas-rebajas"]
+  "mixto": {
+    "source": "consultas-mixto",
+    "seen": 4,
+    "accepted": 2,
+    "excluded": 2,
+    "errors": 0,
+    "excluded_reasons": { "cpv_missing": 1, "family_not_selected": 1 },
+    "kept_folders": ["MIX-OK/2025"],
+    "dropped_folders": ["MIX-NO/2025", "MIX-UNKNOWN/2025"],
+    "kept_lots": ["1"],
+    "dropped_lots": ["2"],
+    "correction": { "folder": "MIX-OK/2025", "status": "EV", "published_at": "2025-02-04T09:00:00Z" }
+  },
+  "coverage_sources": ["consultas-ranking", "consultas-rebajas", "consultas-mixto"]
 }

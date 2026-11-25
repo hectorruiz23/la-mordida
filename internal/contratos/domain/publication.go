@@ -44,12 +44,14 @@ type CPV struct {
 
 // Classification is the CPV selection of an expediente or a lot. Source is
 // published, inherited or unknown; Ambiguous marks an inference the source
-// does not support and that must not be added up.
+// does not support and that must not be added up. Included is the decision of
+// the scope: true when at least one of its codes belongs to a selected family.
 type Classification struct {
 	Codes     []CPV
 	Source    string
 	Ambiguous bool
 	Reason    string
+	Included  bool
 }
 
 const (

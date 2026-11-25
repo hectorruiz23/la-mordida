@@ -12,9 +12,11 @@ import (
 	ingestadomain "github.com/hectorruiz23/la-mordida/internal/ingesta/domain"
 )
 
-// Sink stores one neutral publication as an expediente snapshot with its
-// awards and documents.
+// Sink decides whether a neutral publication enters and, when it does, stores
+// it as an expediente snapshot with its awards and documents. Decide is the
+// counting path: it answers without writing anything.
 type Sink interface {
+	Decide(ctx context.Context, publication contratosdomain.Publication) (contratosdomain.Decision, error)
 	StorePublication(ctx context.Context, publication contratosdomain.Publication) error
 }
 
@@ -44,6 +46,13 @@ func (i *Importer) Run(ctx context.Context, window Window) (int, error) {
 		normalized, err := toContratos(publication)
 		if err != nil {
 			return fmt.Errorf("publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
+		}
+		decision, err := i.sink.Decide(ctx, normalized)
+		if err != nil {
+			return fmt.Errorf("decide publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
+		}
+		if !decision.Store {
+			return nil
 		}
 		if err := i.sink.StorePublication(ctx, normalized); err != nil {
 			return fmt.Errorf("store publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
@@ -163,6 +172,7 @@ func toClassification(classification ingestadomain.Classification) contratosdoma
 		Source:    classification.Source,
 		Ambiguous: classification.Ambiguous,
 		Reason:    classification.Reason,
+		Included:  classification.Included,
 	}
 	for _, code := range classification.Codes {
 		normalized.Codes = append(normalized.Codes, contratosdomain.CPV{

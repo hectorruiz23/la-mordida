@@ -46,6 +46,14 @@ func date(t *testing.T, raw string) *kernel.Date {
 	return &parsed
 }
 
+func selected(code, family string) domain.Classification {
+	return domain.Classification{
+		Source:   domain.ClassificationPublished,
+		Included: true,
+		Codes:    []domain.CPV{{Code: code, Family: family, Included: true, Reason: "family_selected"}},
+	}
+}
+
 func samplePublication(t *testing.T) domain.Publication {
 	t.Helper()
 	return domain.Publication{
@@ -63,11 +71,13 @@ func samplePublication(t *testing.T) domain.Publication {
 				money(t, "2447.22", "EUR", kernel.TaxExclusive),
 				money(t, "2961.14", "EUR", kernel.TaxInclusive),
 			},
+			CPV: selected("30200000", "302"),
 		},
 		Lots: []domain.Lot{{
 			ID:     "1",
 			Object: "Productos para la higiene personal",
 			Budget: []kernel.Money{money(t, "1317.74", "EUR", kernel.TaxExclusive)},
+			CPV:    selected("72200000", "72"),
 		}},
 		Awards: []domain.Award{{
 			LotID:      "1",

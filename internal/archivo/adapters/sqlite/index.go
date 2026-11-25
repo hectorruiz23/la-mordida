@@ -68,6 +68,53 @@ func (i *Index) Links(ctx context.Context, includeEvidence bool) ([]domain.Link,
 	return links, nil
 }
 
+// Admitted tells whether the link still belongs to a unit the import kept. A
+// link whose lot is absent from the stored lots, or whose award has no stored
+// row, is not announced by a kept unit and must not be downloaded.
+func (i *Index) Admitted(ctx context.Context, link domain.Link) (bool, error) {
+	var admitted bool
+	err := i.database.QueryRowContext(ctx, `
+		SELECT CASE
+			WHEN NOT EXISTS (
+				SELECT 1 FROM document_link d
+				JOIN publication p ON p.id = d.publication_id
+				WHERE p.source = ? AND p.external_id = ? AND p.published_at = ?
+				  AND d.target_kind = ? AND d.target_ref = ? AND d.url = ?)
+			THEN 1
+			WHEN ? = 'lot' AND NOT EXISTS (
+				SELECT 1 FROM document_link d
+				JOIN publication p ON p.id = d.publication_id
+				JOIN lot l ON l.expediente_id = p.expediente_id AND l.lot_id = d.target_ref
+				WHERE p.source = ? AND p.external_id = ? AND p.published_at = ?
+				  AND d.target_kind = ? AND d.target_ref = ? AND d.url = ?)
+			THEN 0
+			WHEN ? = 'award' AND NOT EXISTS (
+				SELECT 1 FROM document_link d
+				JOIN publication p ON p.id = d.publication_id
+				JOIN award a ON a.expediente_id = p.expediente_id
+				WHERE p.source = ? AND p.external_id = ? AND p.published_at = ?
+				  AND d.target_kind = ? AND d.target_ref = ? AND d.url = ?)
+			THEN 0
+			ELSE 1
+		END`,
+		link.Publication.Source, link.Publication.ExternalID,
+		link.Publication.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		link.TargetKind, link.TargetRef, link.URL,
+		link.TargetKind,
+		link.Publication.Source, link.Publication.ExternalID,
+		link.Publication.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		link.TargetKind, link.TargetRef, link.URL,
+		link.TargetKind,
+		link.Publication.Source, link.Publication.ExternalID,
+		link.Publication.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		link.TargetKind, link.TargetRef, link.URL,
+	).Scan(&admitted)
+	if err != nil {
+		return false, fmt.Errorf("check admission of %s: %w", link.URL, err)
+	}
+	return admitted, nil
+}
+
 // Pending records that the download failed and stays retryable.
 func (i *Index) Pending(ctx context.Context, link domain.Link, cause error) error {
 	tx, err := i.database.BeginTx(ctx, nil)

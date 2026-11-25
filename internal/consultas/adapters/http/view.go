@@ -174,14 +174,24 @@ type coverageSourceView struct {
 }
 
 type coverageSpanView struct {
-	Kind         string
-	Period       string
-	State        string
-	StateClass   string
-	Publications int
-	Pages        int
-	LastPoint    string
-	Detail       string
+	Kind       string
+	Period     string
+	State      string
+	StateClass string
+	Seen       int
+	Accepted   int
+	Excluded   int
+	Errors     int
+	Exclusions []coverageExclusionView
+	Pages      int
+	LastPoint  string
+	Detail     string
+}
+
+type coverageExclusionView struct {
+	Reason string
+	Label  string
+	Units  int
 }
 
 func viewCoverage(coverage domain.Coverage) coverageView {
@@ -189,20 +199,44 @@ func viewCoverage(coverage domain.Coverage) coverageView {
 	for _, source := range coverage.Sources {
 		item := coverageSourceView{Source: source.Source, Spans: make([]coverageSpanView, 0, len(source.Spans))}
 		for _, span := range source.Spans {
-			item.Spans = append(item.Spans, coverageSpanView{
-				Kind:         loadKindLabel(span.Kind),
-				Period:       periodLabel(span.PeriodFrom, span.PeriodUntil, span.UntilExclusive),
-				State:        spanStateLabel(span.State),
-				StateClass:   span.State,
-				Publications: span.Publications,
-				Pages:        span.Pages,
-				LastPoint:    firstNonEmpty(span.LastCompleteAt, span.LastPage),
-				Detail:       span.Detail,
-			})
+			row := coverageSpanView{
+				Kind:       loadKindLabel(span.Kind),
+				Period:     periodLabel(span.PeriodFrom, span.PeriodUntil, span.UntilExclusive),
+				State:      spanStateLabel(span.State),
+				StateClass: span.State,
+				Seen:       span.Seen,
+				Accepted:   span.Publications,
+				Excluded:   span.Excluded,
+				Errors:     span.Errors,
+				Pages:      span.Pages,
+				LastPoint:  firstNonEmpty(span.LastCompleteAt, span.LastPage),
+				Detail:     span.Detail,
+			}
+			for _, exclusion := range span.Exclusions {
+				row.Exclusions = append(row.Exclusions, coverageExclusionView{
+					Reason: exclusion.Reason,
+					Label:  exclusionReasonLabel(exclusion.Reason),
+					Units:  exclusion.Units,
+				})
+			}
+			item.Spans = append(item.Spans, row)
 		}
 		view.Sources = append(view.Sources, item)
 	}
 	return view
+}
+
+func exclusionReasonLabel(reason string) string {
+	switch reason {
+	case "family_not_selected":
+		return "Familia no seleccionada"
+	case "cpv_missing":
+		return "Sin CPV"
+	case "cpv_ambiguous":
+		return "CPV ambiguo"
+	default:
+		return "Motivo desconocido"
+	}
 }
 
 func loadKindLabel(kind string) string {
