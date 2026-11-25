@@ -1,0 +1,11 @@
+[Unit]
+Description=La Mordida - copia diaria de SQLite y objetos
+
+[Timer]
+OnCalendar=*-*-* 04:45:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=contratos-backup.service
+
+[Install]
+WantedBy=timers.target

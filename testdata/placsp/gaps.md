@@ -153,6 +153,15 @@ event, not an entry: there is no annulled `ContractFolderStatus` to read. The
 last photo is the last known state; the annulment is an event on top of it. Any
 state after the last photo is unknown.
 
+### 13. A buyer can publish no identifier at all
+
+The October 2025 samples always carry a buyer identifier (`NIF`,
+`DIR3`, `ID_PLATAFORMA` or `ID_OC_PLAT`). Older minor-contract snapshots do not:
+in the `1143` archive of January 2020 every entry of the base member carries a
+`cac:PartyName` and no `cac:PartyIdentification`. The importer keeps those rows
+under the pseudo-scheme `NAME` and the published name; it is a source gap, not
+an accredited identity, and the coverage table has to say so.
+
 ## What is *not* a gap
 
 * The lot `ID` is present whenever lots exist; a missing `ProcurementProjectLot`

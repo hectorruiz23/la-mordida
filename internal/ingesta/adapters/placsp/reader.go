@@ -141,6 +141,8 @@ func (r *Reader) read(ctx context.Context, window app.Window, resume app.Resume,
 type pageScan struct {
 	nextHref      string
 	entries       int
+	errors        int
+	errorDetail   string
 	allBeforeFrom bool
 	lastUpdated   time.Time
 	beforeFrom    []domain.Publication
@@ -195,7 +197,15 @@ func (r *Reader) scanPage(ctx context.Context, body io.Reader, window app.Window
 			}
 			publication, err := r.translate(entry)
 			if err != nil {
-				return scan, err
+				// One entry the translator cannot represent without guessing
+				// must not discard the whole page. It is counted as an error
+				// with its reason, so coverage shows the gap instead of
+				// hiding it behind a failed page.
+				scan.errors++
+				if scan.errorDetail == "" {
+					scan.errorDetail = err.Error()
+				}
+				continue
 			}
 			scan.entries++
 			if scan.lastUpdated.Before(publication.UpdatedAt) {
@@ -310,7 +320,10 @@ func (r *Reader) readFeed(ctx context.Context, window app.Window, resume app.Res
 			return fmt.Errorf("placsp: feed page %s: %w", current, scanErr)
 		}
 		if onPage != nil {
-			if err := onPage(app.Page{Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries}); err != nil {
+			if err := onPage(app.Page{
+				Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries,
+				Errors: scan.errors, ErrorDetail: scan.errorDetail,
+			}); err != nil {
 				return err
 			}
 		}
@@ -402,7 +415,10 @@ func (r *Reader) readArchive(ctx context.Context, window app.Window, resume app.
 				return fmt.Errorf("placsp: archive member %s: %w", current, scanErr)
 			}
 			if onPage != nil {
-				if err := onPage(app.Page{Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries}); err != nil {
+				if err := onPage(app.Page{
+					Location: current, LastUpdated: scan.lastUpdated, Entries: scan.entries,
+					Errors: scan.errors, ErrorDetail: scan.errorDetail,
+				}); err != nil {
 					return err
 				}
 			}

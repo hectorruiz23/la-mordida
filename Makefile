@@ -1,7 +1,8 @@
 GO ?= go
 BIN := bin/contratos
+PI_GOARCH ?= arm64
 
-.PHONY: verify fmt build test scenario clean
+.PHONY: verify fmt build test scenario build-pi clean
 
 # What CI runs and what the board requires before a pull request may land.
 verify: fmt build test
@@ -15,6 +16,11 @@ fmt:
 
 build:
 	$(GO) build -o $(BIN) ./cmd/contratos
+
+# The Pi is aarch64 and the binary has no cgo: one static file, no toolchain or
+# shared libraries on the target.
+build-pi:
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(PI_GOARCH) $(GO) build -trimpath -ldflags '-s -w' -o $(BIN)-linux-$(PI_GOARCH) ./cmd/contratos
 
 test:
 	$(GO) vet ./...

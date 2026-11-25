@@ -1,0 +1,11 @@
+[Unit]
+Description=La Mordida - actualizacion diaria del canal %i
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=contratos-import@%i.service
+
+[Install]
+WantedBy=timers.target
