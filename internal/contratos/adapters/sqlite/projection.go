@@ -132,6 +132,9 @@ type awardSnapshot struct {
 // the same published instant make the projection indeterminate while both
 // historical rows stay in award.
 func rebuildAwardProjections(ctx context.Context, tx *sql.Tx, expedienteID int64) error {
+	if _, err := tx.ExecContext(ctx, `DELETE FROM award_unit WHERE expediente_id = ?`, expedienteID); err != nil {
+		return fmt.Errorf("clear award units: %w", err)
+	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM award_projection_amount WHERE expediente_id = ?`, expedienteID); err != nil {
 		return fmt.Errorf("clear award projection amounts: %w", err)
 	}
@@ -226,6 +229,26 @@ func rebuildAwardProjections(ctx context.Context, tx *sql.Tx, expedienteID int64
 			}
 		}
 		start = lotEnd
+	}
+
+	// The current awarded result is also the counting unit of the winner
+	// ranking. It is materialised in the same transaction so the ranking never
+	// reads a projection that disagrees with the stored unit.
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO award_unit (
+			unit_key, expediente_id, lot_id, publication_id, award_date, result_code,
+			winner_scheme, winner_id, winner_name, contract_id, contract_issue_date,
+			buyer_ref, state)
+		SELECT printf('%d:%s', ap.expediente_id, ap.lot_id), ap.expediente_id, ap.lot_id,
+		       ap.publication_id, ap.award_date, ap.result_code,
+		       ap.winner_scheme, ap.winner_id, ap.winner_name,
+		       ap.contract_id, ap.contract_issue_date, e.buyer_ref, ap.state
+		FROM award_projection ap
+		JOIN expediente e ON e.id = ap.expediente_id
+		WHERE ap.expediente_id = ? AND ap.result_code = '8'`,
+		expedienteID,
+	); err != nil {
+		return fmt.Errorf("store award units: %w", err)
 	}
 	return nil
 }
