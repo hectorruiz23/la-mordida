@@ -1,0 +1,338 @@
+{
+  "schema": 1,
+  "project": "la-mordida",
+  "card": "CT-1",
+  "retrieved_at": "2026-11-24",
+  "note": "Official extracts keep the entry bytes of the source; each fixture is one entry inside a copy of the original feed header. Synthetic fixtures are hand-written and flagged.",
+  "source_documents": [
+    {
+      "id": "especificacion-sindicacion",
+      "title": "Formato de sindicación y reutilización de datos sobre las publicaciones en la Plataforma de Contratación del Sector Público",
+      "url": "https://contrataciondelsectorpublico.gob.es/datosabiertos/especificacion-sindicacion.pdf",
+      "version": "1.10",
+      "date": "2024-09-17",
+      "sha256": "e18e3aa19a1570965ca0d7fe906a54760f9ec032ae1a155fd0ecb3006b14f192",
+      "bytes": 2359604
+    },
+    {
+      "id": "resumen-datos-abiertos",
+      "title": "DGPE PLACSP — resumen de los datos abiertos",
+      "url": "https://contrataciondelsectorpublico.gob.es/datosabiertos/DGPE_PLACSP_ResumenDatosAbiertos.pdf",
+      "sha256": "84d34851df2c6e898a447188e9341eda81d836373950605163b53c830cd7a4a1",
+      "bytes": 339902
+    },
+    {
+      "id": "catalogo",
+      "title": "Catálogo de licitaciones de la Plataforma de Contratación del Sector Público",
+      "url": "https://www.hacienda.gob.es/es-es/gobiernoabierto/datos%20abiertos/paginas/licitaciones_plataforma_contratacion.aspx",
+      "sha256": null
+    }
+  ],
+  "channels": [
+    {
+      "id": "sindicacion_643",
+      "name": "Licitaciones publicadas en perfiles del contratante (excluye menores)",
+      "feed_url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3.atom",
+      "archive_pattern": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_{YYYY|YYYYMM}.zip",
+      "coverage": { "from": "2012-01-01", "to": "current" },
+      "granularity": "one entry per publication of one expediente; the entry carries the current ContractFolderStatus snapshot",
+      "max_entries_per_feed_file": 500,
+      "fixtures": 4
+    },
+    {
+      "id": "sindicacion_1044",
+      "name": "Licitaciones publicadas mediante mecanismos de agregación (excluye menores)",
+      "feed_url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/PlataformasAgregadasSinMenores.atom",
+      "archive_pattern": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/PlataformasAgregadasSinMenores_{YYYY|YYYYMM}.zip",
+      "coverage": { "from": "2016-01-01", "to": "current" },
+      "granularity": "one entry per publication of one expediente; buyers may have no NIF and awards may have no date/amount",
+      "max_entries_per_feed_file": 500,
+      "fixtures": 1
+    },
+    {
+      "id": "sindicacion_1143",
+      "name": "Contratos menores publicados en perfiles del contratante",
+      "feed_url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1143/contratosMenoresPerfilesContratantes.atom",
+      "archive_pattern": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1143/contratosMenoresPerfilesContratantes_{YYYY|YYYYMM}.zip",
+      "coverage": { "from": "2018-01-01", "to": "current" },
+      "granularity": "one entry per minor contract; no lots in the checked set",
+      "max_entries_per_feed_file": 500,
+      "fixtures": 1
+    },
+    {
+      "id": "sindicacion_1383",
+      "name": "Encargos a medios propios",
+      "feed_url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1383/EMP_SectorPublico.atom",
+      "archive_pattern": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1383/EMP_SectorPublico_{YYYY}.zip",
+      "coverage": { "from": "2021-07-01", "to": "current" },
+      "granularity": "one entry per encargo; different root element",
+      "max_entries_per_feed_file": 500,
+      "fixtures": 0
+    },
+    {
+      "id": "sindicacion_1403",
+      "name": "Consultas preliminares de mercado",
+      "feed_url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1403/CPM_SectorPublico.atom",
+      "archive_pattern": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1403/CPM_SectorPublico_{YYYY}.zip",
+      "coverage": { "from": "2022-01-01", "to": "current" },
+      "granularity": "one entry per consultation; different root element",
+      "max_entries_per_feed_file": 500,
+      "fixtures": 0
+    }
+  ],
+  "archives": [
+    {
+      "channel": "sindicacion_643",
+      "month": "2025-10",
+      "url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_202510.zip",
+      "last_modified": "Sat, 01 Nov 2025 05:00:38 GMT",
+      "bytes": 182165372,
+      "sha256": "83711c7e7e9a1367f5bfe2e704dd34cc281997c1c83dceae0d44a1f550bee898",
+      "zip_members": 118,
+      "entries": 58034,
+      "distinct_entry_ids": 38724,
+      "uncompressed_bytes": 1751360608
+    },
+    {
+      "channel": "sindicacion_1143",
+      "month": "2025-10",
+      "url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1143/contratosMenoresPerfilesContratantes_202510.zip",
+      "last_modified": "Sat, 01 Nov 2025 05:01:44 GMT",
+      "bytes": 29951294,
+      "sha256": "ab7493c39374829b9f85ef9154205abdbf12c0176fb8d9b461b6cd20c19b94dd",
+      "zip_members": 110,
+      "entries": 54873,
+      "distinct_entry_ids": 54358,
+      "uncompressed_bytes": 537658772
+    },
+    {
+      "channel": "sindicacion_1044",
+      "month": "2025-10",
+      "url": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/PlataformasAgregadasSinMenores_202510.zip",
+      "last_modified": "Sat, 01 Nov 2025 05:01:16 GMT",
+      "bytes": 8261632,
+      "sha256": "80f961b77c0d7c154f48e6d0b91092f7dc192940ee2315daa8428bc04e4fbf98",
+      "zip_members": 48,
+      "entries": 22155,
+      "distinct_entry_ids": 14926,
+      "uncompressed_bytes": 237650051
+    }
+  ],
+  "official_samples": [
+    {
+      "id": "01-lotes-1787-2025",
+      "kind": "lots",
+      "channel": "sindicacion_643",
+      "archive": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_202510.zip",
+      "archive_last_modified": "Sat, 01 Nov 2025 05:00:38 GMT",
+      "zip_member": "licitacionesPerfilesContratanteCompleto3_20251024_184707_14.atom",
+      "zip_member_sha256": "c8e39aaf5156616d74f5b63817188fb11f60be81d35135c8a88a21422e2c4b92",
+      "entry_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/17680481",
+      "entry_sha256": "f774b940cb2cce3aac091d15e445f1b5739b1ecc7dea70aa4019dc2470f5bded",
+      "entry_bytes": 27955,
+      "feed_updated": "2025-10-20T10:23:07.464+02:00",
+      "fixture": "official/01-lotes-1787-2025/publication.atom",
+      "fixture_sha256": "abb92cdbeed3777c5c6d507682d369c405a43fd31d61a1df0a47b2ead86e875b",
+      "fixture_bytes": 29460,
+      "expected": "official/01-lotes-1787-2025/expected.json",
+      "contract_folder_id": "1787/2025",
+      "buyer": { "scheme": "NIF", "id": "P3704600J" },
+      "computed": {
+        "budget_tax_exclusive": "2447.22",
+        "award_total_tax_exclusive": "1378.20",
+        "awards": 2,
+        "winners": 2,
+        "rebates": { "1": "0.404958", "2": "0.474015" },
+        "vat_rates": ["0.21"]
+      }
+    },
+    {
+      "id": "02-correccion-37988-2025",
+      "kind": "correction",
+      "channel": "sindicacion_643",
+      "archive": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_202510.zip",
+      "archive_last_modified": "Sat, 01 Nov 2025 05:00:38 GMT",
+      "fixtures": [
+        {
+          "zip_member": "licitacionesPerfilesContratanteCompleto3_20251002_183350_6.atom",
+          "zip_member_sha256": "719db1cd69f0b4e0338e497646526db4a87c06b390c296b83a7dd7f191f1854e",
+          "entry_sha256": "b8fa0ac124752f87fca32f4610dc2c9a7533a333958505a5b53f194332c3ee5e",
+          "feed_updated": "2025-10-01T14:59:09.022+02:00",
+          "path": "official/02-correccion-37988-2025/before-2025-10-01.atom",
+          "sha256": "659e549bf15ddb116a51bc078172d09a310d343667ec3d08c48ca42b31c4b569",
+          "bytes": 20379
+        },
+        {
+          "zip_member": "licitacionesPerfilesContratanteCompleto3_20251024_184707.atom",
+          "zip_member_sha256": "11f96ab372c7414440b4cad0de29bd80c73b7e3bd0ab5bc85eeb3c23e2917e43",
+          "entry_sha256": "91eb9caf32b88dcd3ced0f0ad8f6daa1eeacd224a30b126d1ca8713743628203",
+          "feed_updated": "2025-10-22T13:49:51.509+02:00",
+          "path": "official/02-correccion-37988-2025/after-2025-10-22.atom",
+          "sha256": "2d7b862b7af265e32b04b08733a029f28551d8b9406bdf22cb01b362084db34a",
+          "bytes": 22965
+        }
+      ],
+      "entry_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/18080657",
+      "expected": "official/02-correccion-37988-2025/expected.json",
+      "contract_folder_id": "37988/2025",
+      "buyer": { "scheme": "NIF", "id": "P2812300H" },
+      "computed": {
+        "correction_detected": true,
+        "deadline_before": "2025-10-16",
+        "deadline_after": "2025-10-17",
+        "second_issue_date": "2025-10-17",
+        "awards": 0
+      }
+    },
+    {
+      "id": "03-menor-20250145",
+      "kind": "minor",
+      "channel": "sindicacion_1143",
+      "archive": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1143/contratosMenoresPerfilesContratantes_202510.zip",
+      "archive_last_modified": "Sat, 01 Nov 2025 05:01:44 GMT",
+      "zip_member": "contratosMenoresPerfilesContratantes_20251001_042950.atom",
+      "zip_member_sha256": "027cf5fdc555b365a9f4c033c34fd1e2606af5b40a3f2152fc61204300fa3a47",
+      "entry_id": "https://contrataciondelestado.es/sindicacion/datosAbiertosMenores/18077195",
+      "entry_sha256": "74d177603ec0cad3c5890f62ee36b973703e1450266ce6a92a690f05cb2b2afc",
+      "entry_bytes": 9851,
+      "feed_updated": "2025-09-30T13:58:42.996+02:00",
+      "fixture": "official/03-menor-20250145/publication.atom",
+      "fixture_sha256": "a042bbfb240f60113e05e77881768bd97f5263b48d69b824e3e48bc7473238b8",
+      "fixture_bytes": 11119,
+      "expected": "official/03-menor-20250145/expected.json",
+      "contract_folder_id": "20250145",
+      "buyer": { "scheme": "NIF", "id": "S2826046A" },
+      "computed": {
+        "budget_tax_exclusive": "14870",
+        "budget_total": "17992.7",
+        "award_tax_exclusive": "14691.62",
+        "award_payable": "17776.86",
+        "rebate": "0.011996",
+        "vat_rate": "0.21"
+      }
+    },
+    {
+      "id": "04-precorte-5502",
+      "kind": "before_the_cut",
+      "channel": "sindicacion_643",
+      "cut": "2020-01-01",
+      "archive": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_202510.zip",
+      "archive_last_modified": "Sat, 01 Nov 2025 05:00:38 GMT",
+      "zip_member": "licitacionesPerfilesContratanteCompleto3_20251024_184707_10.atom",
+      "zip_member_sha256": "1ffb98498dc34c7e68bb071c33abe9f3cc1861b47c65e9fe7c7f542601306b01",
+      "entry_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/3439892",
+      "entry_sha256": "c46365e40b7112b015ff52f578c3d06d49cf4d01b8c7ae63db647356a2beda22",
+      "entry_bytes": 34144,
+      "feed_updated": "2025-10-21T08:59:12.320+02:00",
+      "fixture": "official/04-precorte-5502/publication.atom",
+      "fixture_sha256": "191520e41b02ac7d9c846329e83cac813fdfc8a217139f07bd9ad36207b60056",
+      "fixture_bytes": 35628,
+      "expected": "official/04-precorte-5502/expected.json",
+      "contract_folder_id": "5502",
+      "buyer": { "scheme": "NIF", "id": "A29185519" },
+      "computed": {
+        "initial_notice": "2019-04-10",
+        "initial_notice_before_cut": true,
+        "award_date": "2020-06-26",
+        "contract_date": "2020-10-16",
+        "budget_tax_exclusive": "200000",
+        "award_tax_exclusive": "100650",
+        "rebate": "0.496750",
+        "vat_rate": "0.21"
+      }
+    },
+    {
+      "id": "05-sin-presupuesto-25-07-25C",
+      "kind": "no_comparable_budget",
+      "channel": "sindicacion_643",
+      "archive": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_202510.zip",
+      "archive_last_modified": "Sat, 01 Nov 2025 05:00:38 GMT",
+      "zip_member": "licitacionesPerfilesContratanteCompleto3.atom",
+      "zip_member_sha256": "d7127616c929ed0ebae7c6fa5cee18f67e1b7d09f390bcc78d7dcbd0cd8c78b5",
+      "entry_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/17716628",
+      "entry_sha256": "7b80db6573167b612c11df1ebd9d7a98623ea81596f6f0a41a99aac575a61de1",
+      "entry_bytes": 27751,
+      "feed_updated": "2025-10-29T17:22:18.411+01:00",
+      "fixture": "official/05-sin-presupuesto-25-07-25C/publication.atom",
+      "fixture_sha256": "5473e51d782fe80ada1bf7c5d2738e7e5a22b386ceaf933df410488e9e3871da",
+      "fixture_bytes": 29129,
+      "expected": "official/05-sin-presupuesto-25-07-25C/expected.json",
+      "contract_folder_id": "25-07/25C",
+      "buyer": { "scheme": "NIF", "id": "Q3818001D" },
+      "computed": {
+        "budget_tax_exclusive": "0",
+        "budget_total": "0",
+        "estimated": "90000",
+        "award_tax_exclusive": "69000",
+        "award_payable": "73830",
+        "rebate": null,
+        "excluded_reason": "budget_not_positive",
+        "vat_rate": "0.07"
+      }
+    },
+    {
+      "id": "06-agregada-b045-2025-00012",
+      "kind": "aggregated",
+      "channel": "sindicacion_1044",
+      "archive": "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/PlataformasAgregadasSinMenores_202510.zip",
+      "archive_last_modified": "Sat, 01 Nov 2025 05:01:16 GMT",
+      "zip_member": "PlataformasAgregadasSinMenores_20251002_040036.atom",
+      "zip_member_sha256": "aa99d5ff75bf38629955a3af3a2fdce134fe29c1bca53225d79a0da47475d5c8",
+      "entry_id": "https://contrataciondelestado.es/sindicacion/PlataformasAgregadasSinMenores/17513257",
+      "entry_sha256": "cf767d367215dc11bc835e74e9aa301ada3a705bc8d7903b2635f0b9a59efecb",
+      "entry_bytes": 12249,
+      "feed_updated": "2025-10-01T11:11:13.426+02:00",
+      "fixture": "official/06-agregada-b045-2025-00012/publication.atom",
+      "fixture_sha256": "f72bb784350c44e9d81cc61ddea8d4e6fb8177f931a6f8b36f307d9c9fa55447",
+      "fixture_bytes": 13508,
+      "expected": "official/06-agregada-b045-2025-00012/expected.json",
+      "contract_folder_id": "B045-2025-00012",
+      "buyer": { "scheme": "ID_OC_PLAT", "id": "18367_18368_18369" },
+      "computed": {
+        "lots": 2,
+        "awards": 2,
+        "winner_award_counts": { "B95619953": 2 },
+        "rebates": {},
+        "excluded_reasons": ["no_lot_budget", "amount_not_positive"],
+        "unknowns": ["buyer_nif", "award_date", "award_amount", "vat_rate", "lot_budget"]
+      }
+    }
+  ],
+  "synthetic_samples": [
+    {
+      "id": "01-two-lots-one-winner",
+      "path": "synthetic/01-two-lots-one-winner/publication.atom",
+      "sha256": "6538c62c3328b5ffe61b352a0aac5818c1ca8b6fb87ed594257c44dd627c386c",
+      "expected": "synthetic/01-two-lots-one-winner/expected.json",
+      "pins": ["two awarded lots to the same NIF count twice", "each lot uses its own budget"]
+    },
+    {
+      "id": "02-award-without-payable",
+      "path": "synthetic/02-award-without-payable/publication.atom",
+      "sha256": "ca6f5f9d1215147113128ff8e5ed0d7522a772c4b3ea654eaeec2d86d02b8d46",
+      "expected": "synthetic/02-award-without-payable/expected.json",
+      "pins": ["missing PayableAmount means unknown VAT and unknown tax-inclusive amount"]
+    },
+    {
+      "id": "03-missing-history",
+      "path": "synthetic/03-missing-history/publication.atom",
+      "sha256": "788cc608917708f12337e90d2b8e3c299dc653fe717c1d116a0cb98d05f5e16c",
+      "expected": "synthetic/03-missing-history/expected.json",
+      "pins": ["absence of a notice is unknown history, not proof it did not happen"]
+    },
+    {
+      "id": "04-unknown-currency",
+      "path": "synthetic/04-unknown-currency/publication.atom",
+      "sha256": "b7103af067c18f8d28ecaa8e4ad92c7ce2f4f9825ab0688fb66cb4b3b718d3dc",
+      "expected": "synthetic/04-unknown-currency/expected.json",
+      "pins": ["missing currencyID means unknown currency, never EUR"]
+    }
+  ],
+  "stats_2025_10": {
+    "repeated_issue_dates": { "sindicacion_643": 11293, "sindicacion_1143": 814, "sindicacion_1044": 0 },
+    "awarded_results_with_zero_budget": { "sindicacion_643": 328, "sindicacion_1143": 280, "sindicacion_1044": 40 },
+    "awarded_results_without_amount": { "sindicacion_643": 0, "sindicacion_1143": 0, "sindicacion_1044": 185 },
+    "awarded_results_without_award_date": { "sindicacion_643": 0, "sindicacion_1143": 0, "sindicacion_1044": 8721 },
+    "expedientes_with_awarded_lot_without_lot_budget": { "sindicacion_643": 0, "sindicacion_1143": 0, "sindicacion_1044": 874 }
+  }
+}

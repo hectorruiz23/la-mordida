@@ -1,0 +1,1150 @@
+{
+  "publications": [
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:reb-20",
+        "url": "https://example.invalid/reb-20"
+      },
+      "updated_at": "2025-01-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-20/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-20/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-20/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "100000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "121000",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-20/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000020"
+          },
+          "result_code": "8",
+          "award_date": "2025-01-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000020",
+            "name": "Empresa B10000020"
+          },
+          "amounts": [
+            {
+              "amount": "80000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "96800",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "url": "https://example.invalid/reb-20/pliego.pdf",
+          "title": "Pliego de condiciones",
+          "sha256": "690e293ea46b47d1cb274413dde60c6e1dd47be9bd9e958a9bf099b9ad7e91e2"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:reb-20",
+        "url": "https://example.invalid/reb-20"
+      },
+      "updated_at": "2025-06-01T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-20/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-20/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-20/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "100000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "121000",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-20/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000020"
+          },
+          "result_code": "8",
+          "award_date": "2025-01-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000020",
+            "name": "Empresa B10000020"
+          },
+          "amounts": [
+            {
+              "amount": "80000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "96800",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "kind": "amplification",
+          "ref": "AMP-1",
+          "effective_date": "2025-05-20",
+          "amounts": [
+            {
+              "amount": "10000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "12100",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        },
+        {
+          "kind": "final_payment",
+          "ref": "FP-REB-20",
+          "effective_date": "2025-09-30",
+          "amounts": [
+            {
+              "amount": "90000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "108900",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ],
+          "detail": "Certificación final de la ampliación"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:reb-0",
+        "url": "https://example.invalid/reb-0"
+      },
+      "updated_at": "2025-02-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-0/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-0/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-0/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "50000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "60500",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-0/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000000"
+          },
+          "result_code": "8",
+          "award_date": "2025-02-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000000",
+            "name": "Empresa B10000000"
+          },
+          "amounts": [
+            {
+              "amount": "50000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "60500",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:tie-a",
+        "url": "https://example.invalid/tie-a"
+      },
+      "updated_at": "2025-03-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-TIE-A/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-TIE-A/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-TIE-A/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "30000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "36300",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-TIE-A/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000030"
+          },
+          "result_code": "8",
+          "award_date": "2025-03-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000030",
+            "name": "Empresa B10000030"
+          },
+          "amounts": [
+            {
+              "amount": "24000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "29040",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:tie-b",
+        "url": "https://example.invalid/tie-b"
+      },
+      "updated_at": "2025-03-11T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-TIE-B/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-TIE-B/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-TIE-B/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "40000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "48400",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-TIE-B/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000031"
+          },
+          "result_code": "8",
+          "award_date": "2025-03-16",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000031",
+            "name": "Empresa B10000031"
+          },
+          "amounts": [
+            {
+              "amount": "32000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "38720",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:lots",
+        "url": "https://example.invalid/lots"
+      },
+      "updated_at": "2025-04-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-LOTS/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-LOTS/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-LOTS/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "100000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "121000",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "lots": [
+        {
+          "scope": "lote",
+          "identifiers": {
+            "contract_folder_id": "REB-LOTS/2025",
+            "lot_id": "1"
+          },
+          "id": "1",
+          "object": "Lote 1",
+          "cpv": {
+            "source": "unknown"
+          }
+        },
+        {
+          "scope": "lote",
+          "identifiers": {
+            "contract_folder_id": "REB-LOTS/2025",
+            "lot_id": "2"
+          },
+          "id": "2",
+          "object": "Lote 2",
+          "cpv": {
+            "source": "unknown"
+          }
+        }
+      ],
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-LOTS/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000040",
+            "lot_id": "1"
+          },
+          "result_code": "8",
+          "award_date": "2025-04-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000040",
+            "name": "Empresa B10000040"
+          },
+          "amounts": [
+            {
+              "amount": "45000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "54450",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ],
+          "lot_id": "1"
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-LOTS/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000040",
+            "lot_id": "2"
+          },
+          "result_code": "8",
+          "award_date": "2025-04-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000040",
+            "name": "Empresa B10000040"
+          },
+          "amounts": [
+            {
+              "amount": "40000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "48400",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ],
+          "lot_id": "2"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:corr",
+        "url": "https://example.invalid/corr"
+      },
+      "updated_at": "2025-01-20T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-CORR/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-CORR/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-CORR/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "20000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "24200",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-CORR/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000050"
+          },
+          "result_code": "8",
+          "award_date": "2025-05-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000050",
+            "name": "Empresa B10000050"
+          },
+          "amounts": [
+            {
+              "amount": "16000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "19360",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:corr",
+        "url": "https://example.invalid/corr"
+      },
+      "updated_at": "2025-05-01T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-CORR/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-CORR/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-CORR/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "25000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "30250",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-CORR/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000050"
+          },
+          "result_code": "8",
+          "award_date": "2025-05-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000050",
+            "name": "Empresa B10000050"
+          },
+          "amounts": [
+            {
+              "amount": "16000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "19360",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:no-currency",
+        "url": "https://example.invalid/no-currency"
+      },
+      "updated_at": "2025-06-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-NOCURRENCY/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-NOCURRENCY/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-NOCURRENCY/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "1000",
+            "currency": "",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "1210",
+            "currency": "",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-NOCURRENCY/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000060"
+          },
+          "result_code": "8",
+          "award_date": "2025-06-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000060",
+            "name": "Empresa B10000060"
+          },
+          "amounts": [
+            {
+              "amount": "900",
+              "currency": "",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "1089",
+              "currency": "",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:currency",
+        "url": "https://example.invalid/currency"
+      },
+      "updated_at": "2025-07-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-CURRENCY/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-CURRENCY/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-CURRENCY/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "1000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "1210",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-CURRENCY/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000070"
+          },
+          "result_code": "8",
+          "award_date": "2025-07-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000070",
+            "name": "Empresa B10000070"
+          },
+          "amounts": [
+            {
+              "amount": "900",
+              "currency": "USD",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "1089",
+              "currency": "USD",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:no-budget",
+        "url": "https://example.invalid/no-budget"
+      },
+      "updated_at": "2025-08-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-NOBUDGET/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-NOBUDGET/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-NOBUDGET/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        }
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-NOBUDGET/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000080"
+          },
+          "result_code": "8",
+          "award_date": "2025-08-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000080",
+            "name": "Empresa B10000080"
+          },
+          "amounts": [
+            {
+              "amount": "900",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "1089",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:zero-budget",
+        "url": "https://example.invalid/zero-budget"
+      },
+      "updated_at": "2025-09-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-ZEROBUDGET/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-ZEROBUDGET/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-ZEROBUDGET/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "0",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "0",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-ZEROBUDGET/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000090"
+          },
+          "result_code": "8",
+          "award_date": "2025-09-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000090",
+            "name": "Empresa B10000090"
+          },
+          "amounts": [
+            {
+              "amount": "900",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "1089",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:no-amount",
+        "url": "https://example.invalid/no-amount"
+      },
+      "updated_at": "2025-10-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-NOAMOUNT/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-NOAMOUNT/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-NOAMOUNT/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "1000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "1210",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-NOAMOUNT/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000100"
+          },
+          "result_code": "8",
+          "award_date": "2025-10-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000100",
+            "name": "Empresa B10000100"
+          },
+          "amounts": []
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:zero-amount",
+        "url": "https://example.invalid/zero-amount"
+      },
+      "updated_at": "2025-11-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-ZEROAMOUNT/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-ZEROAMOUNT/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-ZEROAMOUNT/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "1000",
+            "currency": "EUR",
+            "tax_base": "tax_exclusive"
+          },
+          {
+            "amount": "1210",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-ZEROAMOUNT/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000110"
+          },
+          "result_code": "8",
+          "award_date": "2025-11-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000110",
+            "name": "Empresa B10000110"
+          },
+          "amounts": [
+            {
+              "amount": "0",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "0",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:tax-base",
+        "url": "https://example.invalid/tax-base"
+      },
+      "updated_at": "2025-12-10T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-TAXBASE/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-TAXBASE/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-TAXBASE/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "1210",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-TAXBASE/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000120"
+          },
+          "result_code": "8",
+          "award_date": "2025-12-15",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000120",
+            "name": "Empresa B10000120"
+          },
+          "amounts": [
+            {
+              "amount": "900",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:rebajas:inclusive",
+        "url": "https://example.invalid/inclusive"
+      },
+      "updated_at": "2025-12-11T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "REB-INCLUSIVE/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000T"
+        },
+        "folder_id": "REB-INCLUSIVE/2025",
+        "status": "ADJ",
+        "object": "Expediente de prueba REB-INCLUSIVE/2025",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000T",
+          "name": "Ayuntamiento de Rebajas"
+        },
+        "cpv": {
+          "source": "unknown"
+        },
+        "budget": [
+          {
+            "amount": "1210",
+            "currency": "EUR",
+            "tax_base": "tax_inclusive"
+          }
+        ]
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "REB-INCLUSIVE/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000130"
+          },
+          "result_code": "8",
+          "award_date": "2025-12-16",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000130",
+            "name": "Empresa B10000130"
+          },
+          "amounts": [
+            {
+              "amount": "1000",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

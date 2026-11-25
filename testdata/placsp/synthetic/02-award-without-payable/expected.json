@@ -1,0 +1,35 @@
+{
+  "fixture": "synthetic/02-award-without-payable/publication.atom",
+  "official": false,
+  "synthetic": true,
+  "channel": "synthetic",
+  "kind": "award_without_payable",
+  "keys": {
+    "publication_id": "urn:la-mordida:placsp:synthetic:award-without-payable:1",
+    "contract_folder_id": "SYN-NO-PAYABLE",
+    "buyer": { "scheme": "NIF", "id": "P0000000B" },
+    "lot_ids": []
+  },
+  "budget": { "tax_exclusive": "10000", "total": "12100", "currency": "EUR" },
+  "awards": [
+    {
+      "lot_id": null,
+      "award_date": "2026-02-01",
+      "winner": { "scheme": "NIF", "id": "B22222222" },
+      "amount": { "tax_exclusive": "9000", "payable": null, "currency": "EUR", "vat": { "rate": null, "tax_amount": null } },
+      "rebate": "0.1"
+    }
+  ],
+  "expected": {
+    "award_count": 1,
+    "winner_award_counts": { "B22222222": 1 },
+    "rebates": { "global": "0.1" },
+    "vat_known": false,
+    "payable_known": false,
+    "excluded_from_rebajas": []
+  },
+  "notes": [
+    "The tax base 9000 is published, so the rebate (10000-9000)/10000 is computable.",
+    "PayableAmount is absent: the tax-inclusive amount and the VAT rate are unknown. Do not fill 21 % and do not fill 0."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "card": "CT-9",
+  "note": "Expected rows, links and document fingerprints for make scenario. Written from the repository fixtures, not from the app.",
+  "winners": {
+    "buyer": { "scheme": "NIF", "id": "P1000000A" },
+    "rows": [
+      {
+        "name": "Construcciones A, SL",
+        "identity": "NIF B10000001",
+        "wins": "2",
+        "percentage": "66.67 %",
+        "awards": 2
+      },
+      {
+        "name": "Construcciones A, SL",
+        "identity": "NIF B20000002",
+        "wins": "1",
+        "percentage": "33.33 %",
+        "awards": 1
+      }
+    ]
+  },
+  "rebates": {
+    "buyer": { "scheme": "NIF", "id": "P1000000T" },
+    "rows": [
+      {
+        "folder": "REB-20/2025",
+        "lot": "",
+        "ratio": "20.0000",
+        "initial": "100000.00",
+        "awarded": "80000.00",
+        "difference": "20000.00"
+      },
+      {
+        "folder": "REB-CORR/2025",
+        "lot": "",
+        "ratio": "20.0000",
+        "initial": "20000.00",
+        "awarded": "16000.00",
+        "difference": "4000.00"
+      },
+      {
+        "folder": "REB-TIE-A/2025",
+        "lot": "",
+        "ratio": "20.0000",
+        "initial": "30000.00",
+        "awarded": "24000.00",
+        "difference": "6000.00"
+      },
+      {
+        "folder": "REB-TIE-B/2025",
+        "lot": "",
+        "ratio": "20.0000",
+        "initial": "40000.00",
+        "awarded": "32000.00",
+        "difference": "8000.00"
+      },
+      {
+        "folder": "REB-INCLUSIVE/2025",
+        "lot": "",
+        "ratio": "17.3554",
+        "initial": "1210.00",
+        "awarded": "1000.00",
+        "difference": "210.00"
+      },
+      {
+        "folder": "REB-0/2025",
+        "lot": "",
+        "ratio": "0.0000",
+        "initial": "50000.00",
+        "awarded": "50000.00",
+        "difference": "0.00"
+      }
+    ]
+  },
+  "details": {
+    "RANK/2025": {
+      "final": null,
+      "documents": [
+        {
+          "url": "https://example.invalid/rank-2025/pliego.pdf",
+          "sha256": "92852a480140fc12f7a935eb1743f8aca9055098558e1bce93562a7add29ae3b"
+        }
+      ]
+    },
+    "REB-20/2025": {
+      "final": "90000.00",
+      "documents": [
+        {
+          "url": "https://example.invalid/reb-20/pliego.pdf",
+          "sha256": "690e293ea46b47d1cb274413dde60c6e1dd47be9bd9e958a9bf099b9ad7e91e2"
+        }
+      ]
+    }
+  },
+  "coverage_sources": ["consultas-ranking", "consultas-rebajas"]
+}

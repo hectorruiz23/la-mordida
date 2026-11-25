@@ -1,0 +1,91 @@
+{{template "head" .}}
+<section class="intro">
+  <h1>Qué contratos se adjudicaron con más rebaja</h1>
+  <p>Diferencia entre el presupuesto original documentado y el importe adjudicado vigente, ordenada por el cociente exacto. Cada fila abre el desglose, el historial y los documentos.</p>
+</section>
+
+<form class="filters" method="get" action="/rebajas" role="search">
+  <fieldset>
+    <legend>Organismo</legend>
+    <label>Esquema
+      <input name="buyer_scheme" value="{{.Filters.BuyerScheme}}" placeholder="NIF" autocomplete="off" data-field="buyer-scheme">
+    </label>
+    <label>Identificador
+      <input name="buyer_id" value="{{.Filters.BuyerID}}" placeholder="P1000000T" autocomplete="off" data-field="buyer-id">
+    </label>
+  </fieldset>
+  <fieldset>
+    <legend>Periodo de adjudicación</legend>
+    <label>Desde
+      <input type="date" name="from" value="{{.Filters.From}}" data-field="from">
+    </label>
+    <label>Hasta
+      <input type="date" name="to" value="{{.Filters.To}}" data-field="to">
+    </label>
+  </fieldset>
+  <input type="hidden" name="limit" value="{{.Filters.Limit}}">
+  <button type="submit">Filtrar</button>
+</form>
+
+<section class="ranking" aria-labelledby="ranking-title">
+  <h2 id="ranking-title">Rebajas comparables</h2>
+  {{if .Ranking.Buyer}}
+  <p class="scope">{{.Ranking.Buyer.Name}} · {{.Ranking.Buyer.Scheme}} {{.Ranking.Buyer.ID}} · {{.Ranking.From}}{{if .Ranking.To}} a {{.Ranking.To}}{{end}} · {{.Ranking.Total}} comparables · {{.Ranking.ExcludedTotal}} fuera de comparación</p>
+  {{else}}
+  <p class="scope">{{.Ranking.Total}} comparables{{if .Ranking.From}} desde {{.Ranking.From}}{{end}}{{if .Ranking.To}} hasta {{.Ranking.To}}{{end}} · {{.Ranking.ExcludedTotal}} fuera de comparación</p>
+  {{end}}
+
+  {{if .Empty}}
+  <p class="empty" data-empty="rebates">No hay rebajas comparables en este organismo y este periodo. Las unidades sin presupuesto, sin importe o con otra moneda quedan fuera, nunca se leen como cero.</p>
+  {{else}}
+  <div class="table-wrap">
+    <table data-table="rebates">
+      <thead>
+        <tr><th>Rebaja</th><th>Expediente</th><th>Lote</th><th>Adjudicatario</th><th>Presupuesto original</th><th>Adjudicado</th><th>Diferencia</th><th>Publicación</th></tr>
+      </thead>
+      <tbody>
+        {{range .Rows}}
+        <tr data-row="rebate" data-unit-key="{{.Rebate.UnitKey}}">
+          <td data-field="ratio"><strong>{{.Rebate.Percent}} %</strong><br><span class="muted">cociente {{.Rebate.Ratio}}</span></td>
+          <td data-field="folder"><a data-link="detail" href="{{.DetailURL}}">{{.Rebate.FolderID}}</a><br><span class="muted">{{.Rebate.Object}}</span></td>
+          <td data-field="lot">{{if .Rebate.LotID}}{{.Rebate.LotID}}{{else}}<span class="muted">Global</span>{{end}}</td>
+          <td data-field="winner"><a href="/adjudicatarios?buyer_scheme={{urlquery .Rebate.Buyer.Scheme}}&buyer_id={{urlquery .Rebate.Buyer.ID}}&from={{urlquery .Rebate.AwardDate}}&to={{urlquery .Rebate.AwardDate}}">{{.Rebate.Winner.Name}}</a><br><span class="muted">{{.Rebate.Winner.Scheme}} {{.Rebate.Winner.ID}}</span></td>
+          <td data-field="initial">{{template "money" .Initial}}{{if .Latest}}<br><span class="muted">Corregido: {{template "money" .Latest}}</span>{{end}}</td>
+          <td data-field="awarded">{{template "money" .Awarded}}</td>
+          <td data-field="difference">{{template "money" .Difference}}</td>
+          <td>{{if .Rebate.AwardPublication.URL}}<a href="{{.Rebate.AwardPublication.URL}}" rel="noreferrer">{{.Rebate.AwardPublication.Source}}</a>{{else}}{{.Rebate.AwardPublication.Source}}{{end}}<br><span class="muted">{{.Rebate.AwardDate}}</span></td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  <nav class="pagination" aria-label="Páginas de rebajas">
+    {{if .PrevURL}}<a href="{{.PrevURL}}" rel="prev">Anterior</a>{{end}}
+    {{if .NextURL}}<a href="{{.NextURL}}" rel="next">Siguiente</a>{{end}}
+  </nav>
+  {{end}}
+</section>
+
+{{if .Excluded}}
+<section class="excluded" aria-labelledby="excluded-title">
+  <h2 id="excluded-title">Fuera de comparación</h2>
+  <p>Estas unidades se quedan fuera con el motivo que las detiene. Un dato que falta es desconocido, no cero.</p>
+  <div class="table-wrap">
+    <table data-table="excluded">
+      <thead><tr><th>Expediente</th><th>Lote</th><th>Adjudicatario</th><th>Motivo</th><th>Detalle</th></tr></thead>
+      <tbody>
+        {{range .Excluded}}
+        <tr data-row="excluded" data-unit-key="{{.Exclusion.UnitKey}}">
+          <td>{{if .Exclusion.ExpedienteID}}<a href="/adjudicaciones/{{.Exclusion.ExpedienteID}}">{{.Exclusion.FolderID}}</a>{{else}}{{.Exclusion.FolderID}}{{end}}</td>
+          <td>{{if .Exclusion.LotID}}{{.Exclusion.LotID}}{{else}}<span class="muted">Global</span>{{end}}</td>
+          <td>{{.Exclusion.Winner.Name}}</td>
+          <td>{{.Reason}}</td>
+          <td>{{.Exclusion.Detail}}{{if .Exclusion.AwardPublication.URL}} · <a href="{{.Exclusion.AwardPublication.URL}}" rel="noreferrer">publicación</a>{{end}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{end}}
+{{template "foot" .}}

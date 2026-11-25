@@ -1,0 +1,100 @@
+{{template "head" .}}
+<section class="intro detail-intro">
+  <p class="crumbs"><a href="/adjudicatarios">Adjudicatarios</a> · <a href="/rebajas">Rebajas</a></p>
+  <h1>{{.Expediente.FolderID}}</h1>
+  <p class="object">{{if .Expediente.Object}}{{.Expediente.Object}}{{else}}<span class="unknown">Objeto desconocido</span>{{end}}</p>
+  <dl class="facts-summary">
+    <div><dt>Organismo</dt><dd>{{if .Expediente.Buyer.Name}}{{.Expediente.Buyer.Name}}{{else}}<span class="unknown">Desconocido</span>{{end}}<br><span class="muted">{{.Expediente.Buyer.Scheme}} {{.Expediente.Buyer.ID}}</span></dd></div>
+    <div><dt>Estado</dt><dd>{{if .Expediente.Status}}{{.Expediente.Status}}{{else}}<span class="unknown">Desconocido</span>{{end}}</dd></div>
+    <div><dt>Publicación</dt><dd>{{if .Expediente.Publication.URL}}<a href="{{.Expediente.Publication.URL}}" rel="noreferrer">{{.Expediente.Publication.Source}}</a>{{else}}{{.Expediente.Publication.Source}}{{end}}<br><span class="muted">{{.Expediente.Publication.UpdatedAt}}</span></dd></div>
+  </dl>
+</section>
+
+<section class="accounting" aria-labelledby="accounting-title">
+  <h2 id="accounting-title">Desglose: original, adjudicado y final acreditado</h2>
+  <p class="note">El presupuesto original y el vigente se muestran separados. El importe adjudicado es la adjudicación vigente; el final acreditado es el pago final documentado. Si un dato no está publicado, se dice desconocido y no se rellena con cero.</p>
+  <div class="table-wrap">
+    <table data-table="accounting">
+      <thead><tr><th>Ámbito</th><th>Presupuesto original</th><th>Presupuesto vigente</th><th>Adjudicado</th><th>Final acreditado</th><th>Adjudicatario</th><th>Contrato</th></tr></thead>
+      <tbody>
+        {{range .Rows}}
+        <tr data-row="accounting" data-lot="{{.LotID}}">
+          <td><strong>{{.Label}}</strong>{{if .Object}}<br><span class="muted">{{.Object}}</span>{{end}}</td>
+          <td>
+            {{with .OriginalExclusive}}{{template "money" .}}{{else}}<span class="unknown">Desconocido</span>{{end}}
+            {{with .OriginalInclusive}}<br>{{template "money" .}}{{end}}
+          </td>
+          <td>
+            {{with .CurrentExclusive}}{{template "money" .}}{{else}}<span class="unknown">Desconocido</span>{{end}}
+            {{with .CurrentInclusive}}<br>{{template "money" .}}{{end}}
+          </td>
+          <td data-field="awarded">
+            {{with .AwardedExclusive}}{{template "money" .}}{{else}}<span class="unknown">Desconocido</span>{{end}}
+            {{with .AwardedInclusive}}<br>{{template "money" .}}{{end}}
+          </td>
+          <td data-field="final-amount">
+            {{with .FinalExclusive}}{{template "money" .}}{{else}}<span class="unknown" data-unknown="final">Desconocido</span>{{end}}
+            {{with .FinalInclusive}}<br>{{template "money" .}}{{end}}
+          </td>
+          <td>
+            {{if .Award}}
+              {{if .Award.Winner.Name}}{{.Award.Winner.Name}}{{else}}<span class="unknown">Nombre desconocido</span>{{end}}
+              <br><span class="muted">{{.Award.Winner.Scheme}} {{.Award.Winner.ID}}</span>
+              <br><span class="muted">Fecha: {{if .AwardDate}}{{.AwardDate}}{{else}}<span class="unknown">Desconocido</span>{{end}}</span>
+            {{else}}<span class="unknown">Sin adjudicación</span>{{end}}
+          </td>
+          <td>{{if .Contract}}{{.Contract}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="history" aria-labelledby="history-title">
+  <h2 id="history-title">Historial</h2>
+  {{if .Facts}}
+  <div class="table-wrap">
+    <table data-table="history">
+      <thead><tr><th>Hecho</th><th>Fecha</th><th>Ámbito</th><th>Importes</th><th>Plazo</th><th>Entrega</th><th>Detalle</th><th>Publicación</th></tr></thead>
+      <tbody>
+        {{range .Facts}}
+        <tr data-row="fact">
+          <td>{{.Kind}}{{if .Reference}}<br><span class="muted">{{.Reference}}</span>{{end}}</td>
+          <td>{{if .Date}}{{.Date}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+          <td>{{if .LotID}}Lote {{.LotID}}{{else}}Procedimiento{{end}}</td>
+          <td>{{if .Amounts}}{{range .Amounts}}{{template "money" .}}<br>{{end}}{{else}}<span class="muted">Sin importe</span>{{end}}</td>
+          <td>{{.Deadline}}</td>
+          <td>{{.Delivery}}</td>
+          <td>{{if .Detail}}{{.Detail}}{{else}}<span class="muted">—</span>{{end}}</td>
+          <td>{{if .URL}}<a href="{{.URL}}" rel="noreferrer">{{.Publication}}</a>{{else}}{{.Publication}}{{end}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <p class="empty" data-empty="history">No hay hechos de vida documentados para este expediente.</p>
+  {{end}}
+</section>
+
+<section class="documents" aria-labelledby="documents-title">
+  <h2 id="documents-title">Enlaces y documentos</h2>
+  {{if .Documents}}
+  <ul class="document-list">
+    {{range .Documents}}
+    <li data-row="document">
+      <a data-link="document" href="{{.URL}}" rel="noreferrer" data-sha256="{{.SHA256}}">{{.Title}}</a>
+      <span class="muted">{{.State}} · {{.Publication}}</span>
+      {{if .SHA256}}<code class="sha">sha256:{{.SHA256}}</code>{{else}}<span class="unknown">Huella desconocida</span>{{end}}
+    </li>
+    {{end}}
+  </ul>
+  {{else}}
+  <p class="empty" data-empty="documents">Esta publicación no anuncia documentos.</p>
+  {{end}}
+  {{if .Expediente.Publication.URL}}
+  <p class="source-link">Publicación original: <a href="{{.Expediente.Publication.URL}}" rel="noreferrer">{{.Expediente.Publication.URL}}</a></p>
+  {{end}}
+</section>
+{{template "foot" .}}

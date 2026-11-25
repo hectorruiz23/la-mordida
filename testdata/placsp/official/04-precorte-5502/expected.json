@@ -1,0 +1,58 @@
+{
+  "fixture": "official/04-precorte-5502/publication.atom",
+  "official": true,
+  "channel": "sindicacion_643",
+  "kind": "before_the_cut",
+  "cut": "2020-01-01",
+  "keys": {
+    "publication_id": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/3439892",
+    "contract_folder_id": "5502",
+    "buyer": { "scheme": "NIF", "id": "A29185519" },
+    "lot_ids": []
+  },
+  "expediente": {
+    "status": "RES",
+    "title": "Suministro de sensores de nivel para control de caudal y detección de alivios con almacenamiento y envío de datos para EMASA",
+    "buyer_name": "Consejero Delegado de la Empresa Municipal de Aguas de Málaga S.A.",
+    "currency": "EUR",
+    "feed_updated": "2025-10-21T08:59:12.320+02:00",
+    "cpv": ["30237475"]
+  },
+  "publications": [
+    { "notice_type": "DOC_CN", "issue_dates": ["2019-04-10", "2019-04-26", "2019-07-18"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CD", "issue_dates": ["2019-04-10", "2019-04-29"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_CAN_ADJ", "issue_dates": ["2020-07-22"], "medium": "Perfil del contratante" },
+    { "notice_type": "DOC_FORM", "issue_dates": ["2020-10-23"], "medium": "Perfil del contratante" }
+  ],
+  "timeline": {
+    "initial_notice": "2019-04-10",
+    "initial_notice_before_cut": true,
+    "award": "2020-06-26",
+    "award_after_cut": true,
+    "contract": "2020-10-16"
+  },
+  "lots": [],
+  "budget": { "tax_exclusive": "200000", "total": "242000", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "42000" }, "estimated": "200000" },
+  "awards": [
+    {
+      "lot_id": null,
+      "result_code": "8",
+      "award_date": "2020-06-26",
+      "winner": { "scheme": "NIF", "id": "B81573131", "name": "LACROIX SOFREL ESPAÑA, S.L.U." },
+      "amount": { "tax_exclusive": "100650", "payable": "121786.5", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "21136.5" } },
+      "contract": { "id": "181746", "issue_date": "2020-10-16" },
+      "rebate": { "numerator": "99350", "denominator": "200000", "ratio": "0.496750", "percent": "49.6750" }
+    }
+  ],
+  "expected": {
+    "award_count": 1,
+    "winner_award_counts": { "B81573131": 1 },
+    "rebates": { "global": "0.496750" },
+    "excluded_from_rebajas": []
+  },
+  "notes": [
+    "The DOC_CN has three issue dates (2019-04-10, 2019-04-26, 2019-07-18); the first two are the corrected initial announcement, but the XML does not type the correction.",
+    "The initial announcement is before the 2020-01-01 cut; the award (2020-06-26) and the contract (2020-10-16) are after it. Keeping only post-cut publications would consume an award with no initial object/CPV/budget provenance.",
+    "The DOC_FORM is a legal event, not a new award."
+  ]
+}
