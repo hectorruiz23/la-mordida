@@ -1,0 +1,33 @@
+{
+  "fixture": "synthetic/03-missing-history/publication.atom",
+  "official": false,
+  "synthetic": true,
+  "channel": "synthetic",
+  "kind": "missing_history",
+  "keys": {
+    "publication_id": "urn:la-mordida:placsp:synthetic:missing-history:1",
+    "contract_folder_id": "SYN-NO-HISTORY",
+    "buyer": { "scheme": "NIF", "id": "P0000000C" },
+    "lot_ids": []
+  },
+  "budget": { "tax_exclusive": "10000", "total": "12100", "currency": "EUR" },
+  "awards": [
+    { "lot_id": null, "award_date": "2026-02-10", "winner": { "scheme": "NIF", "id": "B33333333" }, "amount": { "tax_exclusive": "8000", "payable": "9680", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "1680" } }, "rebate": "0.2" }
+  ],
+  "history": {
+    "initial_notice": null,
+    "known_notices": ["DOC_CAN_ADJ"],
+    "unknown_states": ["PRE", "PUB", "EV"],
+    "complete": false
+  },
+  "expected": {
+    "award_count": 1,
+    "winner_award_counts": { "B33333333": 1 },
+    "rebates": { "global": "0.2" },
+    "excluded_from_rebajas": []
+  },
+  "notes": [
+    "There is no DOC_CN in the snapshot. That does not prove the tender had no initial announcement; it only proves this snapshot does not carry one.",
+    "The earlier states are unknown, not absent. Mark them unknown and keep the gap."
+  ]
+}

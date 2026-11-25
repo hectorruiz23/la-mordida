@@ -1,0 +1,340 @@
+{
+  "publications": [
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:ranking:rank-2025",
+        "url": "https://example.invalid/rank-2025"
+      },
+      "updated_at": "2025-04-01T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "RANK/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000A"
+        },
+        "folder_id": "RANK/2025",
+        "status": "ADJ",
+        "object": "Obras de dos lotes",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000A",
+          "name": "Ayuntamiento de Prueba"
+        },
+        "budget": [
+          { "amount": "90000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": { "source": "published", "included": true, "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }] }
+      },
+      "lots": [
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "RANK/2025", "lot_id": "1" },
+          "id": "1",
+          "object": "Lote uno",
+          "budget": [
+            { "amount": "50000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": { "source": "published", "included": true, "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }] }
+        },
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "RANK/2025", "lot_id": "2" },
+          "id": "2",
+          "object": "Lote dos",
+          "budget": [
+            { "amount": "40000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": { "source": "published", "included": true, "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }] }
+        },
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "RANK/2025", "lot_id": "3" },
+          "id": "3",
+          "object": "Lote desierto",
+          "budget": [
+            { "amount": "10000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": { "source": "published", "included": true, "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }] }
+        }
+      ],
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "RANK/2025",
+            "lot_id": "1",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000001"
+          },
+          "lot_id": "1",
+          "result_code": "8",
+          "award_date": "2025-01-10",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000001",
+            "name": "Construcciones A, SL"
+          },
+          "amounts": [
+            { "amount": "40000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "contract": { "id": "C-1", "issue_date": "2025-01-20" }
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "RANK/2025",
+            "lot_id": "2",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000001"
+          },
+          "lot_id": "2",
+          "result_code": "8",
+          "award_date": "2025-02-10",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000001",
+            "name": "Construcciones A, SL"
+          },
+          "amounts": [
+            { "amount": "30000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "contract": { "id": "C-2", "issue_date": "2025-02-20" }
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "RANK/2025",
+            "lot_id": "3"
+          },
+          "lot_id": "3",
+          "result_code": "3"
+        }
+      ],
+      "documents": [
+        {
+          "url": "https://example.invalid/rank-2025/pliego.pdf",
+          "title": "Pliego de condiciones",
+          "sha256": "92852a480140fc12f7a935eb1743f8aca9055098558e1bce93562a7add29ae3b"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:ranking:menor-2025",
+        "url": "https://example.invalid/menor-2025"
+      },
+      "updated_at": "2025-03-15T12:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "MENOR/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000A"
+        },
+        "folder_id": "MENOR/2025",
+        "status": "RES",
+        "object": "Suministro menor",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000A",
+          "name": "Ayuntamiento de Prueba"
+        },
+        "budget": [
+          { "amount": "12000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": { "source": "published", "included": true, "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }] }
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "MENOR/2025",
+            "winner_scheme": "NIF",
+            "winner_id": "B20000002"
+          },
+          "result_code": "8",
+          "award_date": "2025-03-01",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B20000002",
+            "name": "Construcciones A, SL"
+          },
+          "amounts": [
+            { "amount": "10000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:ranking:rank-2025",
+        "url": "https://example.invalid/rank-2025"
+      },
+      "updated_at": "2025-05-01T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "RANK/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000A"
+        },
+        "folder_id": "RANK/2025",
+        "status": "ADJ",
+        "object": "Obras de dos lotes",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000A",
+          "name": "Ayuntamiento de Prueba"
+        },
+        "budget": [
+          { "amount": "90000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": { "source": "published", "included": true, "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }] }
+      },
+      "lots": [
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "RANK/2025", "lot_id": "1" },
+          "id": "1",
+          "object": "Lote uno",
+          "budget": [
+            { "amount": "50000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": { "source": "published", "included": true, "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }] }
+        },
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "RANK/2025", "lot_id": "2" },
+          "id": "2",
+          "object": "Lote dos",
+          "budget": [
+            { "amount": "40000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": { "source": "published", "included": true, "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }] }
+        },
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "RANK/2025", "lot_id": "3" },
+          "id": "3",
+          "object": "Lote desierto",
+          "budget": [
+            { "amount": "10000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": { "source": "published", "included": true, "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }] }
+        }
+      ],
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "RANK/2025",
+            "lot_id": "1",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000001"
+          },
+          "lot_id": "1",
+          "result_code": "8",
+          "award_date": "2025-01-10",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000001",
+            "name": "Construcciones A, SL"
+          },
+          "amounts": [
+            { "amount": "39000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "contract": { "id": "C-1", "issue_date": "2025-01-20" }
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "RANK/2025",
+            "lot_id": "2",
+            "winner_scheme": "NIF",
+            "winner_id": "B10000001"
+          },
+          "lot_id": "2",
+          "result_code": "8",
+          "award_date": "2025-02-10",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10000001",
+            "name": "Construcciones A, SL"
+          },
+          "amounts": [
+            { "amount": "29500", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "contract": { "id": "C-2", "issue_date": "2025-02-20" }
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "RANK/2025",
+            "lot_id": "3"
+          },
+          "lot_id": "3",
+          "result_code": "3"
+        }
+      ],
+      "documents": [
+        {
+          "url": "https://example.invalid/rank-2025/pliego.pdf",
+          "title": "Pliego de condiciones",
+          "sha256": "92852a480140fc12f7a935eb1743f8aca9055098558e1bce93562a7add29ae3b"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:ranking:ute-2025",
+        "url": "https://example.invalid/ute-2025"
+      },
+      "updated_at": "2025-06-01T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "UTE/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P9000000Z"
+        },
+        "folder_id": "UTE/2025",
+        "status": "ADJ",
+        "object": "Servicio adjudicado a una UTE",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P9000000Z",
+          "name": "Confederación de Prueba"
+        },
+        "budget": [
+          { "amount": "20000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": { "source": "published", "included": true, "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }] }
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "UTE/2025",
+            "winner_scheme": "OTROS",
+            "winner_id": "U00000001"
+          },
+          "result_code": "8",
+          "award_date": "2025-04-01",
+          "winner": {
+            "scheme": "OTROS",
+            "id": "U00000001",
+            "name": "UTE A y B"
+          },
+          "amounts": [
+            { "amount": "18000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ]
+        }
+      ]
+    }
+  ]
+}

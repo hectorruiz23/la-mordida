@@ -1,0 +1,74 @@
+{{define "head"}}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>La Mordida — {{.Title}}</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="/adjudicatarios">La Mordida</a>
+      <nav aria-label="Consultas">
+        <a href="/adjudicatarios">Adjudicatarios</a>
+        <a href="/rebajas">Rebajas</a>
+      </nav>
+      {{template "coverage" .Coverage}}
+    </div>
+  </header>
+  <main>
+{{end}}
+
+{{define "foot"}}
+  </main>
+  <footer class="site-footer">
+    <p>La Mordida · contratación pública, sin ruido. Los importes son exactos y conservan su moneda y su base fiscal.</p>
+  </footer>
+</body>
+</html>
+{{end}}
+
+{{define "money"}}<span class="money" data-amount="{{.Raw}}" data-currency="{{.Currency}}" data-tax-base="{{.BaseKey}}">{{.Amount}}{{if eq .Currency ""}} <span class="unknown">moneda desconocida</span>{{else if eq .Currency "EUR"}} €{{else}} {{.Currency}}{{end}} <span class="base">{{.Base}}</span></span>{{end}}
+
+{{define "coverage"}}
+<details class="coverage">
+  <summary>Fuentes y periodos</summary>
+  <div class="coverage-panel">
+    {{if .Sources}}
+      <p class="coverage-intro">Canales importados, intervalo cubierto y estado de cada carga. Vistas = aceptadas + excluidas + errores.</p>
+      {{range .Sources}}
+        <section class="coverage-source" data-source="{{.Source}}">
+          <h3>{{.Source}}</h3>
+          <table>
+            <thead>
+              <tr><th>Carga</th><th>Intervalo</th><th>Estado</th><th>Vistas</th><th>Aceptadas</th><th>Excluidas</th><th>Errores</th><th>Páginas</th><th>Último punto</th></tr>
+            </thead>
+            <tbody>
+              {{range .Spans}}
+                <tr data-span="{{.StateClass}}" data-seen="{{.Seen}}" data-accepted="{{.Accepted}}" data-excluded="{{.Excluded}}" data-errors="{{.Errors}}">
+                  <td>{{.Kind}}</td>
+                  <td>{{.Period}}</td>
+                  <td><span class="state state-{{.StateClass}}">{{.State}}</span></td>
+                  <td data-field="seen">{{.Seen}}</td>
+                  <td data-field="accepted">{{.Accepted}}</td>
+                  <td data-field="excluded">{{.Excluded}}</td>
+                  <td data-field="errors">{{.Errors}}</td>
+                  <td>{{.Pages}}</td>
+                  <td>{{if .LastPoint}}{{.LastPoint}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+                </tr>
+                {{if .Exclusions}}<tr class="coverage-exclusions"><td colspan="9">Excluidas por motivo:
+                  {{range .Exclusions}}<span data-exclusion-reason="{{.Reason}}" data-exclusion-units="{{.Units}}">{{.Label}}: {{.Units}}</span>{{end}}
+                </td></tr>{{end}}
+                {{if .Detail}}<tr class="coverage-detail"><td colspan="9">{{.Detail}}</td></tr>{{end}}
+              {{end}}
+            </tbody>
+          </table>
+        </section>
+      {{end}}
+    {{else}}
+      <p>Sin cargas registradas.</p>
+    {{end}}
+  </div>
+</details>
+{{end}}

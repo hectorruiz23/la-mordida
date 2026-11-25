@@ -1,0 +1,179 @@
+{
+  "publications": [
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:la-mordida:placsp:official:03-menor-20250145",
+        "url": "https://contrataciondelestado.es/sindicacion/datosAbiertosMenores/18077195"
+      },
+      "updated_at": "2025-09-30T13:58:42.996+02:00",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "20250145",
+          "buyer_scheme": "NIF",
+          "buyer_id": "S2826046A"
+        },
+        "folder_id": "20250145",
+        "status": "RES",
+        "object": "Suministro del mobiliario para salas de reuniones y despachos del edificio A del Instituto de Estudios Fiscales",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "S2826046A",
+          "name": "Dirección del Instituto de Estudios Fiscales"
+        },
+        "budget": [
+          { "amount": "14870", "currency": "EUR", "tax_base": "tax_exclusive" },
+          { "amount": "17992.70", "currency": "EUR", "tax_base": "tax_inclusive" }
+        ],
+        "cpv": {
+          "source": "published",
+          "included": true,
+          "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }]
+        }
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "20250145",
+            "winner_scheme": "NIF",
+            "winner_id": "B87596276"
+          },
+          "result_code": "8",
+          "award_date": "2025-09-30",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B87596276",
+            "name": "ASENGA LOGISTICA S.L"
+          },
+          "amounts": [
+            { "amount": "14691.62", "currency": "EUR", "tax_base": "tax_exclusive" },
+            { "amount": "17776.86", "currency": "EUR", "tax_base": "tax_inclusive" }
+          ]
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:la-mordida:placsp:official:01-lotes-1787-2025",
+        "url": "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/17680481"
+      },
+      "updated_at": "2025-10-20T10:23:07.464+02:00",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "1787/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P3704600J"
+        },
+        "folder_id": "1787/2025",
+        "status": "ADJ",
+        "object": "Suministro de productos y útiles de limpieza e higien personal para el servicio de extinción de incendios del ayutamiento de Béjar",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P3704600J",
+          "name": "Alcaldía del Ayuntamiento de Béjar"
+        },
+        "budget": [
+          { "amount": "2447.22", "currency": "EUR", "tax_base": "tax_exclusive" },
+          { "amount": "2961.14", "currency": "EUR", "tax_base": "tax_inclusive" }
+        ],
+        "cpv": {
+          "source": "published",
+          "included": true,
+          "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }]
+        }
+      },
+      "lots": [
+        {
+          "scope": "lote",
+          "identifiers": {
+            "contract_folder_id": "1787/2025",
+            "lot_id": "1"
+          },
+          "id": "1",
+          "object": "Productos para la higiene personal",
+          "budget": [
+            { "amount": "1317.74", "currency": "EUR", "tax_base": "tax_exclusive" },
+            { "amount": "1594.47", "currency": "EUR", "tax_base": "tax_inclusive" }
+          ],
+          "cpv": {
+            "source": "published",
+            "included": true,
+            "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }]
+          }
+        },
+        {
+          "scope": "lote",
+          "identifiers": {
+            "contract_folder_id": "1787/2025",
+            "lot_id": "2"
+          },
+          "id": "2",
+          "object": "Productos de limpieza y pulido",
+          "budget": [
+            { "amount": "1129.48", "currency": "EUR", "tax_base": "tax_exclusive" },
+            { "amount": "1366.67", "currency": "EUR", "tax_base": "tax_inclusive" }
+          ],
+          "cpv": {
+            "source": "published",
+            "included": true,
+            "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }]
+          }
+        }
+      ],
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "1787/2025",
+            "lot_id": "1",
+            "winner_scheme": "NIF",
+            "winner_id": "B37491404"
+          },
+          "lot_id": "1",
+          "result_code": "8",
+          "award_date": "2025-10-10",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B37491404",
+            "name": "Suministros Lavabar, SL"
+          },
+          "amounts": [
+            { "amount": "784.11", "currency": "EUR", "tax_base": "tax_exclusive" },
+            { "amount": "948.77", "currency": "EUR", "tax_base": "tax_inclusive" }
+          ]
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": {
+            "contract_folder_id": "1787/2025",
+            "lot_id": "2",
+            "winner_scheme": "NIF",
+            "winner_id": "B10174308"
+          },
+          "lot_id": "2",
+          "result_code": "8",
+          "award_date": "2025-10-10",
+          "winner": {
+            "scheme": "NIF",
+            "id": "B10174308",
+            "name": "FARCOSA S.L"
+          },
+          "amounts": [
+            { "amount": "594.09", "currency": "EUR", "tax_base": "tax_exclusive" },
+            { "amount": "718.84", "currency": "EUR", "tax_base": "tax_inclusive" }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "url": "https://contrataciondelestado.es/wps/wcm/connect/PLACE_es/Site/area/docAccCmpnt?srv=cmpnt&cmpntname=GetDocumentsById&source=library&DocumentIdParam=aa53d88d-bc1f-47cc-a009-f6bb7d343087",
+          "title": "Pliego de prescripciones técnicas"
+        }
+      ]
+    }
+  ]
+}

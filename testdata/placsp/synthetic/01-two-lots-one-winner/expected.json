@@ -1,0 +1,31 @@
+{
+  "fixture": "synthetic/01-two-lots-one-winner/publication.atom",
+  "official": false,
+  "synthetic": true,
+  "channel": "synthetic",
+  "kind": "two_lots_one_winner",
+  "keys": {
+    "publication_id": "urn:la-mordida:placsp:synthetic:two-lots-one-winner:1",
+    "contract_folder_id": "SYN-2L-1W",
+    "buyer": { "scheme": "NIF", "id": "P0000000A" },
+    "lot_ids": ["1", "2"]
+  },
+  "lots": [
+    { "id": "1", "budget": { "tax_exclusive": "50000", "total": "60500", "currency": "EUR" } },
+    { "id": "2", "budget": { "tax_exclusive": "50000", "total": "60500", "currency": "EUR" } }
+  ],
+  "awards": [
+    { "lot_id": "1", "award_date": "2026-01-10", "winner": { "scheme": "NIF", "id": "B12345678" }, "amount": { "tax_exclusive": "40000", "payable": "48400", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "8400" } }, "rebate": "0.2" },
+    { "lot_id": "2", "award_date": "2026-01-10", "winner": { "scheme": "NIF", "id": "B12345678" }, "amount": { "tax_exclusive": "45000", "payable": "54450", "currency": "EUR", "vat": { "rate": "0.21", "tax_amount": "9450" } }, "rebate": "0.1" }
+  ],
+  "expected": {
+    "award_count": 2,
+    "winner_award_counts": { "B12345678": 2 },
+    "rebates": { "1": "0.2", "2": "0.1" },
+    "excluded_from_rebajas": []
+  },
+  "notes": [
+    "Two awarded lots to the same company count twice in the winner ranking (CT-7), never once.",
+    "Each lot has its own budget denominator; do not use the 100000 project budget for either rebate."
+  ]
+}
