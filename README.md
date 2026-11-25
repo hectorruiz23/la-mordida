@@ -99,5 +99,12 @@ them, so a measured zero is not mistaken for missing coverage. One importer may
 run at a time, enforced by the database; SQLite keeps foreign keys on, WAL on
 and a bounded busy timeout, so reads continue while a load writes.
 
+## Deploy
+
+The Raspberry Pi target (static aarch64 binary), its systemd units, the
+persistent directories and the backup/restore runbook are in
+[`deploy/README.md`](deploy/README.md). `make build-pi` writes the binary the Pi
+installs.
+
 The project is in progress; see `AGENTS.md` for the rules a change has to
 follow.

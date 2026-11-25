@@ -114,18 +114,18 @@ func (s *Store) Record(ctx context.Context, progress app.Progress) error {
 
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE import_span
-		SET state = 'partial', publications = ?, pages = ?,
+		SET state = 'partial', publications = ?, pages = ?, errors = ?, error_detail = ?,
 		    last_complete_at = ?, last_page = ?
 		WHERE id = ?`,
-		progress.Publications, progress.Pages,
+		progress.Publications, progress.Pages, progress.Errors, progress.ErrorDetail,
 		formatTime(progress.Cursor.LastCompleteAt), progress.Cursor.LastPage,
 		progress.SpanID,
 	); err != nil {
 		return fmt.Errorf("record import span: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, `
-		UPDATE import_run SET publications = ?, pages = ? WHERE id = ?`,
-		progress.Publications, progress.Pages, progress.RunID,
+		UPDATE import_run SET publications = ?, pages = ?, errors = ?, error_detail = ? WHERE id = ?`,
+		progress.Publications, progress.Pages, progress.Errors, progress.ErrorDetail, progress.RunID,
 	); err != nil {
 		return fmt.Errorf("record import counters: %w", err)
 	}
@@ -158,18 +158,21 @@ func (s *Store) Finish(ctx context.Context, run app.Run, progress app.Progress, 
 	finishedAt := s.now().Unix()
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE import_run
-		SET state = ?, finished_at = ?, publications = ?, pages = ?, detail = ?
+		SET state = ?, finished_at = ?, publications = ?, pages = ?, errors = ?,
+		    error_detail = ?, detail = ?
 		WHERE id = ?`,
-		string(state), finishedAt, progress.Publications, progress.Pages, detail, run.ID,
+		string(state), finishedAt, progress.Publications, progress.Pages, progress.Errors,
+		progress.ErrorDetail, detail, run.ID,
 	); err != nil {
 		return fmt.Errorf("finish import run: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE import_span
-		SET state = ?, publications = ?, pages = ?, last_complete_at = ?,
-		    last_page = ?, detail = ?
+		SET state = ?, publications = ?, pages = ?, errors = ?, error_detail = ?,
+		    last_complete_at = ?, last_page = ?, detail = ?
 		WHERE id = ?`,
-		string(span), progress.Publications, progress.Pages,
+		string(span), progress.Publications, progress.Pages, progress.Errors,
+		progress.ErrorDetail,
 		formatTime(progress.Cursor.LastCompleteAt), progress.Cursor.LastPage,
 		detail, progress.SpanID,
 	); err != nil {
@@ -204,7 +207,8 @@ func (s *Store) Cursor(ctx context.Context, source string) (app.Cursor, bool, er
 func (s *Store) Spans(ctx context.Context, source string) ([]app.Span, error) {
 	rows, err := s.database.QueryContext(ctx, `
 		SELECT id, run_id, source, kind, period_from, period_until, until_exclusive,
-		       state, publications, pages, last_complete_at, last_page, detail
+		       state, publications, pages, errors, error_detail, last_complete_at,
+		       last_page, detail
 		FROM import_span
 		WHERE source = ?
 		ORDER BY id`,
@@ -225,7 +229,8 @@ func (s *Store) Spans(ctx context.Context, source string) ([]app.Span, error) {
 		)
 		if err := rows.Scan(
 			&span.ID, &span.RunID, &span.Source, &kind, &from, &until, &untilExclusive,
-			&state, &span.Publications, &span.Pages, &lastComplete, &span.LastPage, &span.Detail,
+			&state, &span.Publications, &span.Pages, &span.Errors, &span.ErrorDetail,
+			&lastComplete, &span.LastPage, &span.Detail,
 		); err != nil {
 			return nil, fmt.Errorf("scan import span: %w", err)
 		}

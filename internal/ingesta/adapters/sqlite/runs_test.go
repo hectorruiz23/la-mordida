@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -74,6 +75,7 @@ func TestCursorAndSpansRoundTrip(t *testing.T) {
 	}
 	progress := ingestaapp.Progress{
 		RunID: run.ID, SpanID: run.SpanID, Publications: 3, Pages: 2,
+		Errors: 1, ErrorDetail: "entry urn:test:bad: ContractFolderID is missing",
 		Cursor: ingestaapp.Cursor{Source: source, LastCompleteAt: point, LastPage: "/feed.atom"},
 	}
 	if err := store.Record(ctx, progress); err != nil {
@@ -97,5 +99,8 @@ func TestCursorAndSpansRoundTrip(t *testing.T) {
 	}
 	if len(spans) != 1 || spans[0].State != ingestaapp.SpanPartial || spans[0].Publications != 3 || spans[0].Pages != 2 {
 		t.Fatalf("spans = %+v, want one partial span with its counters", spans)
+	}
+	if spans[0].Errors != 1 || !strings.Contains(spans[0].ErrorDetail, "ContractFolderID") {
+		t.Errorf("span errors = %d / %q, want the counted reason", spans[0].Errors, spans[0].ErrorDetail)
 	}
 }

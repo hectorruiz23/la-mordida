@@ -215,3 +215,44 @@ func TestOnlyTenderChannelsAreAccepted(t *testing.T) {
 		t.Error("a non-http feed URL was accepted")
 	}
 }
+
+func TestABadEntryIsCountedAndDoesNotDiscardThePage(t *testing.T) {
+	server := serve(t, map[string]string{
+		"/feed.atom": atomPage(
+			feedEntry("urn:test:good", "2025-10-20T10:00:00Z", "F-1"),
+			feedEntry("urn:test:bad", "2025-10-20T11:00:00Z", ""),
+		),
+	}, nil)
+
+	reader, err := NewFeed(Profiles, server.URL+"/feed.atom")
+	if err != nil {
+		t.Fatalf("new feed: %v", err)
+	}
+
+	var (
+		publications []domain.Publication
+		pages        []app.Page
+	)
+	if err := reader.ReadResumable(context.Background(), app.Window{}, app.Resume{},
+		func(publication domain.Publication) error {
+			publications = append(publications, publication)
+			return nil
+		},
+		func(page app.Page) error {
+			pages = append(pages, page)
+			return nil
+		},
+	); err != nil {
+		t.Fatalf("read feed: %v", err)
+	}
+
+	if len(publications) != 1 || publications[0].Reference.ID != "urn:test:good" {
+		t.Fatalf("publications = %+v, want the one readable entry", publications)
+	}
+	if len(pages) != 1 || pages[0].Errors != 1 {
+		t.Fatalf("pages = %+v, want one page with one counted error", pages)
+	}
+	if !strings.Contains(pages[0].ErrorDetail, "ContractFolderID") {
+		t.Errorf("error detail = %q, want the missing folder reason", pages[0].ErrorDetail)
+	}
+}

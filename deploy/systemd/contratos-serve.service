@@ -1,0 +1,25 @@
+[Unit]
+Description=La Mordida - rankings web sobre contratacion publica
+Documentation=file:/opt/la-mordida/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=contratos
+Group=contratos
+EnvironmentFile=/etc/la-mordida/contratos.env
+ExecStart=/opt/la-mordida/contratos serve -db ${CONTRATOS_DB} -addr ${CONTRATOS_ADDR}
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=20s
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/la-mordida
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

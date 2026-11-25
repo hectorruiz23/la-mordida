@@ -55,6 +55,8 @@ func (r *Reader) translate(entry *node) (domain.Publication, error) {
 		return domain.Publication{}, fmt.Errorf("placsp: entry %s: %w", id, err)
 	}
 
+	lots = completeAwardLots(lots, awards, expediente.FolderID)
+
 	return domain.Publication{
 		Reference: domain.Reference{
 			Source: r.channel.Source(),
@@ -68,6 +70,35 @@ func (r *Reader) translate(entry *node) (domain.Publication, error) {
 		Notices:    notices,
 		Documents:  translateDocuments(status),
 	}, nil
+}
+
+// completeAwardLots keeps an award whose snapshot omits the lot definition.
+// The lot id is published by the award itself, so the lot exists; its object,
+// budget and CPV are unknown, and the rebate ranking will exclude it with that
+// reason instead of discarding the whole award.
+func completeAwardLots(lots []domain.Lot, awards []domain.Award, folderID string) []domain.Lot {
+	known := make(map[string]bool, len(lots))
+	for _, lot := range lots {
+		known[lot.ID] = true
+	}
+	for _, award := range awards {
+		if award.LotID == "" || known[award.LotID] {
+			continue
+		}
+		known[award.LotID] = true
+		lots = append(lots, domain.Lot{
+			Fact: domain.Fact{
+				Scope: domain.ScopeLot,
+				Identifiers: map[string]string{
+					"contract_folder_id": folderID,
+					"lot_id":             award.LotID,
+				},
+			},
+			ID:  award.LotID,
+			CPV: domain.Classification{Source: domain.ClassificationUnknown},
+		})
+	}
+	return lots
 }
 
 func entryLink(entry *node) string {
@@ -149,7 +180,14 @@ func translateBuyer(party *node) (domain.Party, error) {
 	if first.ID != "" {
 		return first, nil
 	}
-	return domain.Party{}, fmt.Errorf("buyer has no PartyIdentification/ID")
+	if name != "" {
+		// Some minor-contract profiles publish only the buyer's name. It is
+		// not a legal identifier, so it is kept under the NAME scheme: the
+		// gap stays visible and the procedure is still separated from other
+		// buyers that share a folder id.
+		return domain.Party{Scheme: "NAME", ID: name, Name: name}, nil
+	}
+	return domain.Party{}, fmt.Errorf("buyer has no PartyIdentification/ID or PartyName")
 }
 
 func translateLots(status *node, expediente domain.Classification) ([]domain.Lot, error) {

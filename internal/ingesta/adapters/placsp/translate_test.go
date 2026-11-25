@@ -3,6 +3,7 @@ package placsp
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -389,4 +390,57 @@ func mustRead(t *testing.T, relativePath string) string {
 		t.Fatalf("read fixture %s: %v", relativePath, err)
 	}
 	return string(contents)
+}
+
+func TestBuyerWithOnlyANameKeepsTheGapVisible(t *testing.T) {
+	entry := strings.Replace(atomEntry("urn:test:name", "2025-10-20T10:00:00Z", "F-NAME", ""),
+		`<cac:PartyIdentification><cbc:ID schemeName="NIF">P0000000A</cbc:ID></cac:PartyIdentification>`, "", 1)
+
+	publications, err := readArchiveMembers(t, Profiles, app.Window{},
+		map[string]string{"publication.atom": atomPage(entry)})
+	if err != nil {
+		t.Fatalf("read buyer without an identifier: %v", err)
+	}
+	if len(publications) != 1 {
+		t.Fatalf("publications = %d, want 1", len(publications))
+	}
+	buyer := publications[0].Expediente.Buyer
+	if buyer.Scheme != "NAME" || buyer.ID != "Organismo de prueba" || buyer.Name != "Organismo de prueba" {
+		t.Errorf("buyer = %+v, want the published name under the NAME scheme", buyer)
+	}
+}
+
+func TestAwardKeepsALotTheSnapshotOmits(t *testing.T) {
+	entry := atomEntry("urn:test:lot", "2025-10-20T10:00:00Z", "F-LOT", `
+<cac:TenderResult>
+  <cbc:ResultCode>8</cbc:ResultCode>
+  <cac:AwardedTenderedProject>
+    <cbc:ProcurementProjectLotID>9</cbc:ProcurementProjectLotID>
+    <cac:LegalMonetaryTotal>
+      <cbc:TaxExclusiveAmount currencyID="EUR">100</cbc:TaxExclusiveAmount>
+    </cac:LegalMonetaryTotal>
+  </cac:AwardedTenderedProject>
+</cac:TenderResult>`)
+
+	publications, err := readArchiveMembers(t, Profiles, app.Window{},
+		map[string]string{"publication.atom": atomPage(entry)})
+	if err != nil {
+		t.Fatalf("read award with an omitted lot: %v", err)
+	}
+	if len(publications) != 1 {
+		t.Fatalf("publications = %d, want 1", len(publications))
+	}
+	publication := publications[0]
+	if len(publication.Lots) != 1 || publication.Lots[0].ID != "9" {
+		t.Fatalf("lots = %+v, want the lot the award names", publication.Lots)
+	}
+	if publication.Lots[0].Object != "" || len(publication.Lots[0].Budget) != 0 {
+		t.Errorf("lot = %+v, want unknown details", publication.Lots[0])
+	}
+	if publication.Lots[0].CPV.Source != domain.ClassificationUnknown {
+		t.Errorf("lot CPV source = %q, want unknown", publication.Lots[0].CPV.Source)
+	}
+	if len(publication.Awards) != 1 || publication.Awards[0].LotID != "9" {
+		t.Fatalf("awards = %+v, want the award kept", publication.Awards)
+	}
 }
