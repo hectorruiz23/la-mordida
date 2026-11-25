@@ -136,6 +136,7 @@ func (s *Store) rebateUnits(ctx context.Context, where string, args []any) ([]re
 			return nil, fmt.Errorf("scan rebate unit: %w", err)
 		}
 		unit.rebate.LotID = unit.lotKey
+		unit.rebate.ExpedienteID = unit.expedienteID
 		units = append(units, unit)
 	}
 	if err := rows.Err(); err != nil {
@@ -349,6 +350,7 @@ func commonBase(budget, awarded []kernel.Money) (kernel.TaxBase, bool) {
 func rebateExclusion(unit rebateUnit, reason, detail string) domain.RebateExclusion {
 	return domain.RebateExclusion{
 		UnitKey:          unit.rebate.UnitKey,
+		ExpedienteID:     unit.rebate.ExpedienteID,
 		FolderID:         unit.rebate.FolderID,
 		Object:           unit.rebate.Object,
 		Buyer:            unit.rebate.Buyer,

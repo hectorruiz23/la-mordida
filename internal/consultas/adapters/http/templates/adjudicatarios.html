@@ -1,0 +1,111 @@
+{{template "head" .}}
+<section class="intro">
+  <h1>Quién gana más adjudicaciones</h1>
+  <p>Victorias de cada adjudicatario dentro de un organismo y un periodo de adjudicación. Cada fila abre las adjudicaciones y los documentos que la sostienen.</p>
+</section>
+
+<form class="filters" method="get" action="/adjudicatarios" role="search">
+  <fieldset>
+    <legend>Organismo</legend>
+    <label>Esquema
+      <input name="buyer_scheme" value="{{.Filters.BuyerScheme}}" placeholder="NIF" autocomplete="off" data-field="buyer-scheme">
+    </label>
+    <label>Identificador
+      <input name="buyer_id" value="{{.Filters.BuyerID}}" placeholder="P1000000A" autocomplete="off" data-field="buyer-id">
+    </label>
+  </fieldset>
+  <fieldset>
+    <legend>Periodo de adjudicación</legend>
+    <label>Desde
+      <input type="date" name="from" value="{{.Filters.From}}" data-field="from">
+    </label>
+    <label>Hasta
+      <input type="date" name="to" value="{{.Filters.To}}" data-field="to">
+    </label>
+  </fieldset>
+  <input type="hidden" name="limit" value="{{.Filters.Limit}}">
+  <button type="submit">Filtrar</button>
+</form>
+
+{{with .Awards}}
+<section class="awards" aria-labelledby="awards-title">
+  <h2 id="awards-title">Adjudicaciones de {{if .Entity.Name}}{{.Entity.Name}}{{else}}<span class="unknown">nombre desconocido</span>{{end}}</h2>
+  <p class="scope">
+    {{if .Entity.Scheme}}{{.Entity.Scheme}} {{.Entity.ID}}{{end}}
+    {{if .Entity.Kind}} · {{.Entity.Kind}}{{end}}
+    · {{.Total}} adjudicaciones en el periodo
+  </p>
+  {{if .Rows}}
+  <div class="table-wrap">
+    <table data-table="awards">
+      <thead>
+        <tr><th>Fecha</th><th>Expediente</th><th>Lote</th><th>Importe adjudicado</th><th>Publicación</th><th>Documentos</th></tr>
+      </thead>
+      <tbody>
+        {{range .Rows}}
+        <tr data-row="award" data-unit-key="{{.Line.UnitKey}}">
+          <td>{{if .Date}}{{.Date}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+          <td><a data-link="detail" href="{{.DetailURL}}">{{.Line.FolderID}}</a></td>
+          <td>{{if .Line.LotID}}{{.Line.LotID}}{{else}}<span class="muted">Global</span>{{end}}</td>
+          <td>{{with moneyAt .Line.Amounts "tax_exclusive"}}{{template "money" .}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+          <td>{{if .Line.Publication.URL}}<a href="{{.Line.Publication.URL}}" rel="noreferrer">{{.Line.Publication.Source}}</a>{{else}}{{.Line.Publication.Source}}{{end}}</td>
+          <td>
+            {{if .Docs}}
+              {{range .Docs}}<a href="{{.URL}}" rel="noreferrer" data-link="document" data-sha256="{{.SHA256}}">{{.Title}}</a>{{end}}
+            {{else}}<span class="unknown">Sin documentos</span>{{end}}
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  <nav class="pagination" aria-label="Páginas de adjudicaciones">
+    {{if .PrevURL}}<a href="{{.PrevURL}}" rel="prev">Anterior</a>{{end}}
+    {{if .NextURL}}<a href="{{.NextURL}}" rel="next">Siguiente</a>{{end}}
+  </nav>
+  {{else}}
+  <p class="empty" data-empty="awards">Este adjudicatario no tiene adjudicaciones en el periodo consultado.</p>
+  {{end}}
+</section>
+{{end}}
+
+<section class="ranking" aria-labelledby="ranking-title">
+  <h2 id="ranking-title">Ranking del periodo</h2>
+  {{if .Ranking.Buyer}}
+  <p class="scope">{{.Ranking.Buyer.Name}} · {{.Ranking.Buyer.Scheme}} {{.Ranking.Buyer.ID}} · {{.Ranking.From}}{{if .Ranking.To}} a {{.Ranking.To}}{{end}} · {{.Ranking.Total}} adjudicaciones</p>
+  {{else}}
+  <p class="scope">{{.Ranking.Total}} adjudicaciones{{if .Ranking.From}} desde {{.Ranking.From}}{{end}}{{if .Ranking.To}} hasta {{.Ranking.To}}{{end}}</p>
+  {{end}}
+
+  {{if .Empty}}
+  <p class="empty" data-empty="winners">No hay adjudicaciones que cumplan este organismo y este periodo. Prueba otro identificador o abre el rango de fechas.</p>
+  {{else}}
+  <div class="table-wrap">
+    <table data-table="winners">
+      <thead>
+        <tr><th>Puesto</th><th>Adjudicatario</th><th>Identificador</th><th>Victorias</th><th>% del total</th><th></th></tr>
+      </thead>
+      <tbody>
+        {{range $index, $row := .Ranking.Ranking}}
+        <tr data-row="winner" data-entity-key="{{$row.Entity.Key}}">
+          <td>{{inc $index}}</td>
+          <td>
+            <a data-field="name" data-link="awards" href="{{index $.EntityURLs $row.Entity.Key}}">{{if $row.Entity.Name}}{{$row.Entity.Name}}{{else}}<span class="unknown">Nombre desconocido</span>{{end}}</a>
+            {{if $row.Entity.Names}}{{if gt (len $row.Entity.Names) 1}}<span class="muted">También: {{range $i, $name := $row.Entity.Names}}{{if $i}} · {{end}}{{$name}}{{end}}</span>{{end}}{{end}}
+          </td>
+          <td data-field="identity">{{if $row.Entity.Scheme}}{{$row.Entity.Scheme}} {{$row.Entity.ID}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+          <td data-field="wins">{{$row.Wins}}</td>
+          <td data-field="percentage">{{$row.Percentage}} %</td>
+          <td><a data-link="awards" href="{{index $.EntityURLs $row.Entity.Key}}">Ver adjudicaciones</a></td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  <nav class="pagination" aria-label="Páginas del ranking">
+    {{if .PrevURL}}<a href="{{.PrevURL}}" rel="prev">Anterior</a>{{end}}
+    {{if .NextURL}}<a href="{{.NextURL}}" rel="next">Siguiente</a>{{end}}
+  </nav>
+  {{end}}
+</section>
+{{template "foot" .}}

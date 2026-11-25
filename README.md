@@ -20,6 +20,25 @@ make verify    # gofmt, build and tests, what CI runs
 ./bin/contratos --help
 ```
 
+## Web
+
+`serve` answers the two rankings as HTML in Spanish from the same binary, with
+the filter form on the page and a discreet coverage indicator that opens by
+click, keyboard or tap:
+
+```
+./bin/contratos serve -db contratos.db
+```
+
+`/adjudicatarios` lists the winners of a buyer and a period; every row opens
+the awards that make up the count. `/rebajas` lists the comparable rebates and
+the units left out with their reason. Each award opens
+`/adjudicaciones/{id}`, where the original budget, the current award and the
+final accredited payment are kept apart with their tax base, beside the
+lifecycle history and the documents announced by any revision. A missing
+amount or date is shown as unknown, never as zero. The stylesheet is embedded
+in the binary; there is no separate asset to deploy.
+
 ## Documents
 
 `import` records every document a publication announces, with the fact it

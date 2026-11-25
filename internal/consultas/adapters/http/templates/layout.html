@@ -1,0 +1,68 @@
+{{define "head"}}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>La Mordida — {{.Title}}</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="/adjudicatarios">La Mordida</a>
+      <nav aria-label="Consultas">
+        <a href="/adjudicatarios">Adjudicatarios</a>
+        <a href="/rebajas">Rebajas</a>
+      </nav>
+      {{template "coverage" .Coverage}}
+    </div>
+  </header>
+  <main>
+{{end}}
+
+{{define "foot"}}
+  </main>
+  <footer class="site-footer">
+    <p>La Mordida · contratación pública, sin ruido. Los importes son exactos y conservan su moneda y su base fiscal.</p>
+  </footer>
+</body>
+</html>
+{{end}}
+
+{{define "money"}}<span class="money" data-amount="{{.Raw}}" data-currency="{{.Currency}}" data-tax-base="{{.BaseKey}}">{{.Amount}}{{if eq .Currency ""}} <span class="unknown">moneda desconocida</span>{{else if eq .Currency "EUR"}} €{{else}} {{.Currency}}{{end}} <span class="base">{{.Base}}</span></span>{{end}}
+
+{{define "coverage"}}
+<details class="coverage">
+  <summary>Fuentes y periodos</summary>
+  <div class="coverage-panel">
+    {{if .Sources}}
+      <p class="coverage-intro">Canales importados, intervalo cubierto y estado de cada carga.</p>
+      {{range .Sources}}
+        <section class="coverage-source">
+          <h3>{{.Source}}</h3>
+          <table>
+            <thead>
+              <tr><th>Carga</th><th>Intervalo</th><th>Estado</th><th>Publicaciones</th><th>Páginas</th><th>Último punto</th></tr>
+            </thead>
+            <tbody>
+              {{range .Spans}}
+                <tr>
+                  <td>{{.Kind}}</td>
+                  <td>{{.Period}}</td>
+                  <td><span class="state state-{{.StateClass}}">{{.State}}</span></td>
+                  <td>{{.Publications}}</td>
+                  <td>{{.Pages}}</td>
+                  <td>{{if .LastPoint}}{{.LastPoint}}{{else}}<span class="unknown">Desconocido</span>{{end}}</td>
+                </tr>
+                {{if .Detail}}<tr class="coverage-detail"><td colspan="6">{{.Detail}}</td></tr>{{end}}
+              {{end}}
+            </tbody>
+          </table>
+        </section>
+      {{end}}
+    {{else}}
+      <p>Sin cargas registradas.</p>
+    {{end}}
+  </div>
+</details>
+{{end}}

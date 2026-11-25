@@ -149,20 +149,21 @@ type Ranking struct {
 // the documents it announced. A member of a UTE never receives a share of
 // these amounts.
 type AwardLine struct {
-	UnitKey     string         `json:"unit_key"`
-	FolderID    string         `json:"folder_id"`
-	Object      string         `json:"object,omitempty"`
-	Buyer       Party          `json:"buyer"`
-	LotID       string         `json:"lot_id,omitempty"`
-	LotObject   string         `json:"lot_object,omitempty"`
-	AwardDate   string         `json:"award_date,omitempty"`
-	ResultCode  string         `json:"result_code"`
-	Winner      Party          `json:"winner"`
-	State       string         `json:"state"`
-	Amounts     []kernel.Money `json:"amounts,omitempty"`
-	Contract    *Contract      `json:"contract,omitempty"`
-	Publication Publication    `json:"publication"`
-	Documents   []Document     `json:"documents,omitempty"`
+	UnitKey      string         `json:"unit_key"`
+	ExpedienteID int64          `json:"expediente_id"`
+	FolderID     string         `json:"folder_id"`
+	Object       string         `json:"object,omitempty"`
+	Buyer        Party          `json:"buyer"`
+	LotID        string         `json:"lot_id,omitempty"`
+	LotObject    string         `json:"lot_object,omitempty"`
+	AwardDate    string         `json:"award_date,omitempty"`
+	ResultCode   string         `json:"result_code"`
+	Winner       Party          `json:"winner"`
+	State        string         `json:"state"`
+	Amounts      []kernel.Money `json:"amounts,omitempty"`
+	Contract     *Contract      `json:"contract,omitempty"`
+	Publication  Publication    `json:"publication"`
+	Documents    []Document     `json:"documents,omitempty"`
 }
 
 // AwardPage is the justifying list of one ranked entity. Total counts every

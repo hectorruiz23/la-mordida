@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -54,19 +55,7 @@ func (s *Store) ListExpedientes(ctx context.Context) ([]domain.Expediente, error
 			return nil, fmt.Errorf("scan expediente: %w", err)
 		}
 
-		if expediente.Budget, err = budget(ctx, s.database, publicationID, ""); err != nil {
-			return nil, err
-		}
-		if expediente.Lots, err = lots(ctx, s.database, expedienteID, publicationID); err != nil {
-			return nil, err
-		}
-		if expediente.Awards, err = awards(ctx, s.database, expedienteID); err != nil {
-			return nil, err
-		}
-		if expediente.Facts, err = facts(ctx, s.database, expedienteID); err != nil {
-			return nil, err
-		}
-		if expediente.Documents, err = documents(ctx, s.database, publicationID); err != nil {
+		if err := s.fillExpediente(ctx, &expediente, expedienteID, publicationID, false); err != nil {
 			return nil, err
 		}
 		expedientes = append(expedientes, expediente)
@@ -75,6 +64,72 @@ func (s *Store) ListExpedientes(ctx context.Context) ([]domain.Expediente, error
 		return nil, fmt.Errorf("list expedientes: %w", err)
 	}
 	return expedientes, nil
+}
+
+// Expediente reads one current projection by its internal id, with the
+// original budget of every scope and every document announced by any
+// revision. The list reading keeps the current budget only; a detail has to
+// show the original beside the correction and the evidence behind both.
+func (s *Store) Expediente(ctx context.Context, id int64) (domain.Expediente, error) {
+	var expediente domain.Expediente
+	var publicationID int64
+	err := s.database.QueryRowContext(ctx, `
+		SELECT e.id, e.buyer_scheme, e.buyer_id, e.buyer_name, e.folder_id, e.object, e.status,
+		       e.projection_state,
+		       p.id, p.source, p.external_id, p.url, p.published_at, COALESCE(p.effective_date, '')
+		FROM expediente e
+		JOIN publication p ON p.id = COALESCE(
+			e.current_publication_id,
+			(SELECT p2.id FROM publication p2
+			 WHERE p2.expediente_id = e.id
+			 ORDER BY julianday(p2.published_at) DESC, p2.id DESC
+			 LIMIT 1))
+		WHERE e.id = ?`, id,
+	).Scan(
+		&id,
+		&expediente.Buyer.Scheme, &expediente.Buyer.ID, &expediente.Buyer.Name,
+		&expediente.FolderID, &expediente.Object, &expediente.Status, &expediente.State,
+		&publicationID, &expediente.Publication.Source, &expediente.Publication.ExternalID,
+		&expediente.Publication.URL, &expediente.Publication.UpdatedAt,
+		&expediente.Publication.EffectiveDate,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.Expediente{}, domain.ErrExpedienteNotFound
+	}
+	if err != nil {
+		return domain.Expediente{}, fmt.Errorf("read expediente %d: %w", id, err)
+	}
+	if err := s.fillExpediente(ctx, &expediente, id, publicationID, true); err != nil {
+		return domain.Expediente{}, err
+	}
+	return expediente, nil
+}
+
+func (s *Store) fillExpediente(ctx context.Context, expediente *domain.Expediente, expedienteID, publicationID int64, detail bool) error {
+	var err error
+	if expediente.Budget, err = budget(ctx, s.database, publicationID, ""); err != nil {
+		return err
+	}
+	if detail {
+		if expediente.OriginalBudget, err = originalBudget(ctx, s.database, expedienteID, ""); err != nil {
+			return err
+		}
+	}
+	if expediente.Lots, err = lots(ctx, s.database, expedienteID, publicationID, detail); err != nil {
+		return err
+	}
+	if expediente.Awards, err = awards(ctx, s.database, expedienteID); err != nil {
+		return err
+	}
+	if expediente.Facts, err = facts(ctx, s.database, expedienteID); err != nil {
+		return err
+	}
+	if detail {
+		expediente.Documents, err = allDocuments(ctx, s.database, expedienteID)
+		return err
+	}
+	expediente.Documents, err = documents(ctx, s.database, publicationID)
+	return err
 }
 
 func budget(ctx context.Context, database *sql.DB, publicationID int64, lotKey string) ([]kernel.Money, error) {
@@ -100,7 +155,7 @@ func budget(ctx context.Context, database *sql.DB, publicationID int64, lotKey s
 	return amounts, rows.Err()
 }
 
-func lots(ctx context.Context, database *sql.DB, expedienteID, publicationID int64) ([]domain.Lot, error) {
+func lots(ctx context.Context, database *sql.DB, expedienteID, publicationID int64, detail bool) ([]domain.Lot, error) {
 	rows, err := database.QueryContext(ctx, `
 		SELECT lot_id, object, projection_state
 		FROM lot
@@ -119,6 +174,11 @@ func lots(ctx context.Context, database *sql.DB, expedienteID, publicationID int
 		}
 		if lot.Budget, err = budget(ctx, database, publicationID, lot.ID); err != nil {
 			return nil, err
+		}
+		if detail {
+			if lot.OriginalBudget, err = originalBudget(ctx, database, expedienteID, lot.ID); err != nil {
+				return nil, err
+			}
 		}
 		result = append(result, lot)
 	}
@@ -243,6 +303,74 @@ func factAmounts(ctx context.Context, database *sql.DB, factID int64) ([]kernel.
 		amounts = append(amounts, kernel.Money{Cents: cents, Currency: currency, TaxBase: kernel.TaxBase(base)})
 	}
 	return amounts, rows.Err()
+}
+
+// originalBudget reads the amounts of the first publication that documented
+// the scope. A later correction is not the original: the detail shows it
+// beside the row, never instead of it.
+func originalBudget(ctx context.Context, database *sql.DB, expedienteID int64, lotKey string) ([]kernel.Money, error) {
+	var publicationID int64
+	err := database.QueryRowContext(ctx, `
+		SELECT b.publication_id
+		FROM budget_amount b
+		JOIN publication p ON p.id = b.publication_id
+		WHERE p.expediente_id = ? AND b.lot_key = ?
+		ORDER BY julianday(p.published_at) ASC, p.id ASC
+		LIMIT 1`, expedienteID, lotKey,
+	).Scan(&publicationID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("read original budget publication: %w", err)
+	}
+	return budget(ctx, database, publicationID, lotKey)
+}
+
+// allDocuments reads every document announced by any revision of the
+// expediente, with the publication that announced it.
+func allDocuments(ctx context.Context, database *sql.DB, expedienteID int64) ([]domain.Document, error) {
+	rows, err := database.QueryContext(ctx, `
+		SELECT d.target_kind, d.target_ref, d.url, d.sha256, d.title, d.state, d.mime,
+		       COALESCE(d.obtained_at, 0),
+		       p.source, p.external_id, p.url, p.published_at, COALESCE(p.effective_date, '')
+		FROM document_link d
+		JOIN publication p ON p.id = d.publication_id
+		WHERE p.expediente_id = ?
+		ORDER BY julianday(p.published_at) DESC, p.id DESC, d.target_kind, d.target_ref, d.url`, expedienteID)
+	if err != nil {
+		return nil, fmt.Errorf("read expediente documents: %w", err)
+	}
+	defer rows.Close()
+
+	var result []domain.Document
+	seen := make(map[string]bool)
+	for rows.Next() {
+		var document domain.Document
+		var obtainedAt int64
+		if err := rows.Scan(
+			&document.TargetKind, &document.TargetRef, &document.URL,
+			&document.SHA256, &document.Title, &document.State, &document.MIME, &obtainedAt,
+			&document.Publication.Source, &document.Publication.ExternalID,
+			&document.Publication.URL, &document.Publication.UpdatedAt,
+			&document.Publication.EffectiveDate,
+		); err != nil {
+			return nil, fmt.Errorf("scan expediente document: %w", err)
+		}
+		// The same announced link may appear in several revisions. The link
+		// is one document; the newest publication is its provenance and the
+		// duplicate revision is not rendered twice.
+		key := document.URL + "\x00" + document.SHA256
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		if obtainedAt > 0 {
+			document.ObtainedAt = time.Unix(obtainedAt, 0).UTC().Format(time.RFC3339)
+		}
+		result = append(result, document)
+	}
+	return result, rows.Err()
 }
 
 func documents(ctx context.Context, database *sql.DB, publicationID int64) ([]domain.Document, error) {

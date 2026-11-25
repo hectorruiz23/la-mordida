@@ -24,6 +24,8 @@ const (
 // the counted award units.
 type Store interface {
 	ListExpedientes(ctx context.Context) ([]domain.Expediente, error)
+	Expediente(ctx context.Context, id int64) (domain.Expediente, error)
+	Coverage(ctx context.Context) (domain.Coverage, error)
 	Ranking(ctx context.Context, query domain.RankingQuery) (domain.Ranking, error)
 	Awards(ctx context.Context, query domain.RankingQuery, entityKey string) (domain.AwardPage, error)
 	Rebates(ctx context.Context, query domain.RankingQuery) (domain.RebateRanking, error)
@@ -39,6 +41,19 @@ func New(store Store) *Service {
 
 func (s *Service) ListExpedientes(ctx context.Context) ([]domain.Expediente, error) {
 	return s.store.ListExpedientes(ctx)
+}
+
+// Expediente reads the detail of one imported procedure.
+func (s *Service) Expediente(ctx context.Context, id int64) (domain.Expediente, error) {
+	if id <= 0 {
+		return domain.Expediente{}, fmt.Errorf("%w: expediente id", ErrInvalidQuery)
+	}
+	return s.store.Expediente(ctx, id)
+}
+
+// Coverage reads the load history shown beside the rankings.
+func (s *Service) Coverage(ctx context.Context) (domain.Coverage, error) {
+	return s.store.Coverage(ctx)
 }
 
 // Ranking reads who wins the most awards inside one buyer and award period.

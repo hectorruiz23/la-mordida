@@ -44,7 +44,7 @@ Opciones de import:
   -channel string   canal de PLACSP (por defecto sindicacion_643)
   -feed string      URL del feed de novedades del canal
   -archive string   paquete ZIP del histórico del canal
-  -fixture string   fixture neutral local (por defecto testdata/neutral/sample-award.json)
+  -fixture string   fixture neutral local o URL (por defecto testdata/neutral/sample-award.json)
   -source string    clave de procedencia del cursor (por defecto el canal o fixture)
   -from string      inicio del periodo: AAAA-MM-DD (incluido) o instante RFC 3339
   -until string     fin del periodo: AAAA-MM-DD (excluido) o instante RFC 3339
@@ -350,6 +350,13 @@ func runServe(args []string) error {
 	mux.HandleFunc("GET /api/ranking", handler.Ranking)
 	mux.HandleFunc("GET /api/ranking/awards", handler.Awards)
 	mux.HandleFunc("GET /api/rebajas", handler.Rebates)
+	mux.HandleFunc("GET /adjudicatarios", handler.Adjudicatarios)
+	mux.HandleFunc("GET /rebajas", handler.Rebajas)
+	mux.HandleFunc("GET /adjudicaciones/{id}", handler.Adjudicacion)
+	mux.Handle("GET /assets/", consultashttp.Assets())
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/adjudicatarios", http.StatusSeeOther)
+	})
 
 	listener, err := net.Listen("tcp", *addr)
 	if err != nil {

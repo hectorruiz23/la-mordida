@@ -7,8 +7,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/hectorruiz23/la-mordida/internal/ingesta/app"
@@ -28,9 +31,9 @@ type document struct {
 }
 
 func (p *Publisher) Read(ctx context.Context, window app.Window, yield func(domain.Publication) error) error {
-	contents, err := os.ReadFile(p.path)
+	contents, err := p.contents(ctx)
 	if err != nil {
-		return fmt.Errorf("read fixture %s: %w", p.path, err)
+		return err
 	}
 
 	var payload document
@@ -57,6 +60,36 @@ func (p *Publisher) Read(ctx context.Context, window app.Window, yield func(doma
 		}
 	}
 	return nil
+}
+
+// contents reads the fixture from the local file or from an HTTP URL. The
+// scenario serves the repository fixtures over loopback HTTP so the import
+// path is exercised through the same fetch a channel would use.
+func (p *Publisher) contents(ctx context.Context) ([]byte, error) {
+	if strings.HasPrefix(p.path, "http://") || strings.HasPrefix(p.path, "https://") {
+		request, err := http.NewRequestWithContext(ctx, http.MethodGet, p.path, nil)
+		if err != nil {
+			return nil, fmt.Errorf("read fixture %s: %w", p.path, err)
+		}
+		response, err := http.DefaultClient.Do(request)
+		if err != nil {
+			return nil, fmt.Errorf("read fixture %s: %w", p.path, err)
+		}
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("read fixture %s: HTTP %d", p.path, response.StatusCode)
+		}
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return nil, fmt.Errorf("read fixture %s: %w", p.path, err)
+		}
+		return body, nil
+	}
+	contents, err := os.ReadFile(p.path)
+	if err != nil {
+		return nil, fmt.Errorf("read fixture %s: %w", p.path, err)
+	}
+	return contents, nil
 }
 
 // ReadResumable treats the whole file as one page: a fixture is small enough

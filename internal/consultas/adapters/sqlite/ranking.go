@@ -153,6 +153,7 @@ func (s *Store) Awards(ctx context.Context, query domain.RankingQuery, entityKey
 		if contractID != "" || contractIssueDate != "" {
 			line.Contract = &domain.Contract{ID: contractID, IssueDate: contractIssueDate}
 		}
+		line.ExpedienteID = expedienteID
 		if line.Amounts, err = s.awardUnitAmounts(ctx, expedienteID, line.LotID); err != nil {
 			return domain.AwardPage{}, err
 		}
