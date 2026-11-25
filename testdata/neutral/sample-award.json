@@ -25,7 +25,12 @@
         "budget": [
           { "amount": "14870", "currency": "EUR", "tax_base": "tax_exclusive" },
           { "amount": "17992.70", "currency": "EUR", "tax_base": "tax_inclusive" }
-        ]
+        ],
+        "cpv": {
+          "source": "published",
+          "included": true,
+          "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }]
+        }
       },
       "awards": [
         {
@@ -74,7 +79,12 @@
         "budget": [
           { "amount": "2447.22", "currency": "EUR", "tax_base": "tax_exclusive" },
           { "amount": "2961.14", "currency": "EUR", "tax_base": "tax_inclusive" }
-        ]
+        ],
+        "cpv": {
+          "source": "published",
+          "included": true,
+          "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }]
+        }
       },
       "lots": [
         {
@@ -88,7 +98,12 @@
           "budget": [
             { "amount": "1317.74", "currency": "EUR", "tax_base": "tax_exclusive" },
             { "amount": "1594.47", "currency": "EUR", "tax_base": "tax_inclusive" }
-          ]
+          ],
+          "cpv": {
+            "source": "published",
+            "included": true,
+            "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }]
+          }
         },
         {
           "scope": "lote",
@@ -101,7 +116,12 @@
           "budget": [
             { "amount": "1129.48", "currency": "EUR", "tax_base": "tax_exclusive" },
             { "amount": "1366.67", "currency": "EUR", "tax_base": "tax_inclusive" }
-          ]
+          ],
+          "cpv": {
+            "source": "published",
+            "included": true,
+            "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }]
+          }
         }
       ],
       "awards": [

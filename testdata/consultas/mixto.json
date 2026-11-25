@@ -1,0 +1,230 @@
+{
+  "publications": [
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:mixto:ok",
+        "url": "https://example.invalid/mixto/ok"
+      },
+      "updated_at": "2025-02-01T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "MIX-OK/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000M"
+        },
+        "folder_id": "MIX-OK/2025",
+        "status": "ADJ",
+        "object": "Servicio mixto con un lote tecnológico y otro ajeno",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000M",
+          "name": "Ayuntamiento Mixto"
+        },
+        "budget": [
+          { "amount": "100000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": {
+          "source": "published",
+          "included": true,
+          "codes": [{ "code": "30200000", "family": "302", "included": true, "reason": "family_selected" }]
+        }
+      },
+      "lots": [
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "MIX-OK/2025", "lot_id": "1" },
+          "id": "1",
+          "object": "Lote tecnológico",
+          "budget": [
+            { "amount": "60000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": {
+            "source": "published",
+            "included": true,
+            "codes": [{ "code": "72200000", "family": "72", "included": true, "reason": "family_selected" }]
+          }
+        },
+        {
+          "scope": "lote",
+          "identifiers": { "contract_folder_id": "MIX-OK/2025", "lot_id": "2" },
+          "id": "2",
+          "object": "Lote ajeno",
+          "budget": [
+            { "amount": "40000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ],
+          "cpv": {
+            "source": "published",
+            "included": false,
+            "codes": [{ "code": "45300000", "family": "", "included": false, "reason": "family_not_selected" }]
+          }
+        }
+      ],
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": { "contract_folder_id": "MIX-OK/2025", "lot_id": "1", "winner_scheme": "NIF", "winner_id": "B30000003" },
+          "lot_id": "1",
+          "result_code": "8",
+          "award_date": "2025-01-20",
+          "winner": { "scheme": "NIF", "id": "B30000003", "name": "Tecnología A, SL" },
+          "amounts": [
+            { "amount": "50000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ]
+        },
+        {
+          "scope": "adjudicacion",
+          "identifiers": { "contract_folder_id": "MIX-OK/2025", "lot_id": "2", "winner_scheme": "NIF", "winner_id": "B40000004" },
+          "lot_id": "2",
+          "result_code": "8",
+          "award_date": "2025-01-21",
+          "winner": { "scheme": "NIF", "id": "B40000004", "name": "Obra Ajena, SL" },
+          "amounts": [
+            { "amount": "35000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "kind": "lot",
+          "ref": "1",
+          "url": "https://example.invalid/mixto/lote1.pdf",
+          "title": "Pliego del lote tecnológico"
+        },
+        {
+          "kind": "lot",
+          "ref": "2",
+          "url": "https://example.invalid/mixto/lote2.pdf",
+          "title": "Pliego del lote ajeno"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:mixto:no",
+        "url": "https://example.invalid/mixto/no"
+      },
+      "updated_at": "2025-02-02T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "MIX-NO/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000N"
+        },
+        "folder_id": "MIX-NO/2025",
+        "status": "ADJ",
+        "object": "Obra ajena que no entra",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000N",
+          "name": "Ayuntamiento No Tecnológico"
+        },
+        "budget": [
+          { "amount": "50000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": {
+          "source": "published",
+          "included": false,
+          "codes": [{ "code": "45300000", "family": "", "included": false, "reason": "family_not_selected" }]
+        }
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": { "contract_folder_id": "MIX-NO/2025", "winner_scheme": "NIF", "winner_id": "B50000005" },
+          "result_code": "8",
+          "award_date": "2025-01-22",
+          "winner": { "scheme": "NIF", "id": "B50000005", "name": "Construcción Ajena, SL" },
+          "amounts": [
+            { "amount": "40000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "kind": "publication",
+          "url": "https://example.invalid/mixto/no.pdf",
+          "title": "Pliego de la obra ajena"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:mixto:unknown",
+        "url": "https://example.invalid/mixto/unknown"
+      },
+      "updated_at": "2025-02-03T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "MIX-UNKNOWN/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000U"
+        },
+        "folder_id": "MIX-UNKNOWN/2025",
+        "status": "ADJ",
+        "object": "Expediente sin CPV que tampoco entra",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000U",
+          "name": "Ayuntamiento Sin Clasificación"
+        },
+        "budget": [
+          { "amount": "20000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": { "source": "unknown" }
+      },
+      "awards": [
+        {
+          "scope": "adjudicacion",
+          "identifiers": { "contract_folder_id": "MIX-UNKNOWN/2025", "winner_scheme": "NIF", "winner_id": "B60000006" },
+          "result_code": "8",
+          "award_date": "2025-01-23",
+          "winner": { "scheme": "NIF", "id": "B60000006", "name": "Sin Clasificar, SL" },
+          "amounts": [
+            { "amount": "18000", "currency": "EUR", "tax_base": "tax_exclusive" }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "kind": "publication",
+          "url": "https://example.invalid/mixto/unknown.pdf",
+          "title": "Pliego sin clasificación"
+        }
+      ]
+    },
+    {
+      "reference": {
+        "source": "fixture",
+        "id": "urn:fixture:mixto:ok",
+        "url": "https://example.invalid/mixto/ok"
+      },
+      "updated_at": "2025-02-04T09:00:00Z",
+      "expediente": {
+        "scope": "expediente",
+        "identifiers": {
+          "contract_folder_id": "MIX-OK/2025",
+          "buyer_scheme": "NIF",
+          "buyer_id": "P1000000M"
+        },
+        "folder_id": "MIX-OK/2025",
+        "status": "EV",
+        "object": "Servicio mixto con un lote tecnológico y otro ajeno",
+        "buyer": {
+          "scheme": "NIF",
+          "id": "P1000000M",
+          "name": "Ayuntamiento Mixto"
+        },
+        "budget": [
+          { "amount": "100000", "currency": "EUR", "tax_base": "tax_exclusive" }
+        ],
+        "cpv": { "source": "unknown" }
+      }
+    }
+  ]
+}

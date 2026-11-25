@@ -43,6 +43,11 @@ func TestListExpedientesServesTheProjectionAndItsFacts(t *testing.T) {
 			FolderID: "LECTURA/2025",
 			Object:   "Objeto vigente",
 			Status:   "ADJ",
+			CPV: contratosdomain.Classification{
+				Source:   contratosdomain.ClassificationPublished,
+				Included: true,
+				Codes:    []contratosdomain.CPV{{Code: "30200000", Family: "302", Included: true, Reason: "family_selected"}},
+			},
 		},
 		Awards: []contratosdomain.Award{{
 			LotID:      "",

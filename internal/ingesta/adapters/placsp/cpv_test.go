@@ -44,6 +44,9 @@ func TestSelectedFamiliesAndExclusions(t *testing.T) {
 			if code.Included != test.included {
 				t.Errorf("included = %v, want %v", code.Included, test.included)
 			}
+			if classification.Included != test.included {
+				t.Errorf("scope included = %v, want %v", classification.Included, test.included)
+			}
 			wantReason := "family_not_selected"
 			if test.included {
 				wantReason = "family_selected"
@@ -52,6 +55,16 @@ func TestSelectedFamiliesAndExclusions(t *testing.T) {
 				t.Errorf("reason = %q, want %q", code.Reason, wantReason)
 			}
 		})
+	}
+}
+
+func TestAScopeEntersWhenAnyOfItsCodesIsSelected(t *testing.T) {
+	classification := classifyPublished([]string{"45300000", "72200000"})
+	if !classification.Included {
+		t.Fatal("a scope with one selected code did not enter")
+	}
+	if len(classification.Codes) != 2 || classification.Codes[0].Included || !classification.Codes[1].Included {
+		t.Fatalf("codes = %+v, want the selected one to mark the scope", classification.Codes)
 	}
 }
 
@@ -118,6 +131,10 @@ func TestLotInheritsOnlyAnUnambiguousExpediente(t *testing.T) {
 			}
 			if inherited.Ambiguous != test.wantAmbiguous {
 				t.Errorf("ambiguous = %v, want %v", inherited.Ambiguous, test.wantAmbiguous)
+			}
+			wantIncluded := test.wantFamily != ""
+			if inherited.Included != wantIncluded {
+				t.Errorf("included = %v, want %v", inherited.Included, wantIncluded)
 			}
 			if test.wantFamily != "" {
 				if len(inherited.Codes) != 1 || inherited.Codes[0].Family != test.wantFamily {

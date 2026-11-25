@@ -22,6 +22,7 @@ import (
 	consultassqlite "github.com/hectorruiz23/la-mordida/internal/consultas/adapters/sqlite"
 	consultasapp "github.com/hectorruiz23/la-mordida/internal/consultas/app"
 	contratossqlite "github.com/hectorruiz23/la-mordida/internal/contratos/adapters/sqlite"
+	contratosapp "github.com/hectorruiz23/la-mordida/internal/contratos/app"
 	fixture "github.com/hectorruiz23/la-mordida/internal/ingesta/adapters/fixture"
 	"github.com/hectorruiz23/la-mordida/internal/ingesta/adapters/placsp"
 	ingestasqlite "github.com/hectorruiz23/la-mordida/internal/ingesta/adapters/sqlite"
@@ -153,7 +154,7 @@ func runImport(args []string) error {
 		kind = ingestaapp.Incremental
 	}
 
-	store := contratossqlite.New(database)
+	store := contratosapp.NewImporter(contratossqlite.New(database))
 	importer := ingestaapp.NewResumableImporter(reader, store, runs)
 	report, importErr := importer.Import(ctx, ingestaapp.Request{
 		Source:          resolvedSource,
@@ -172,9 +173,9 @@ func runImport(args []string) error {
 		return importErr
 	}
 
-	fmt.Printf("import: %s %s: %s, %d publicaciones, %d páginas, punto %s en %s\n",
-		report.Source, kind, describeSpan(report.Span), report.Publications, report.Pages,
-		formatCursor(report.Cursor), *dbPath)
+	fmt.Printf("import: %s %s: %s, %d vistas, %d aceptadas, %d excluidas, %d errores, %d páginas, punto %s en %s\n",
+		report.Source, kind, describeSpan(report.Span), report.Seen, report.Publications,
+		report.Excluded, report.Errors, report.Pages, formatCursor(report.Cursor), *dbPath)
 	return nil
 }
 
@@ -218,10 +219,14 @@ func printCoverage(ctx context.Context, runs ingestaapp.RunLog, source string) e
 	}
 	fmt.Printf("cobertura %s:\n", source)
 	for _, span := range spans {
-		fmt.Printf("  %s %s: %s, %d publicaciones, %d páginas, punto %s\n",
+		fmt.Printf("  %s %s: %s, %d vistas, %d aceptadas, %d excluidas, %d errores, %d páginas, punto %s\n",
 			formatPeriod(span.PeriodFrom, span.PeriodUntil, span.UntilExclusive),
-			span.Kind, describeSpan(span.State), span.Publications, span.Pages,
+			span.Kind, describeSpan(span.State), span.Seen, span.Publications,
+			span.Excluded, span.Errors, span.Pages,
 			formatCursor(ingestaapp.Cursor{LastCompleteAt: span.LastCompleteAt, LastPage: span.LastPage}))
+		for _, exclusion := range span.Exclusions {
+			fmt.Printf("    excluidas %s: %d\n", exclusion.Reason, exclusion.Units)
+		}
 	}
 	return nil
 }
@@ -296,13 +301,17 @@ func runArchive(args []string) error {
 	}
 
 	archiver := archivoapp.New(archivohttp.New(nil), archivodisk.New(*objectsPath), index)
-	archived, pending := 0, 0
+	archived, pending, excluded := 0, 0, 0
 	for _, link := range links {
 		archive := archiver.Archive
 		if *refresh {
 			archive = archiver.Refresh
 		}
 		if _, err := archive(ctx, link); err != nil {
+			if errors.Is(err, archivoapp.ErrExcluded) {
+				excluded++
+				continue
+			}
 			pending++
 			fmt.Fprintf(os.Stderr, "archive: %s: %v\n", link.URL, err)
 			continue
@@ -310,7 +319,8 @@ func runArchive(args []string) error {
 		archived++
 	}
 
-	fmt.Printf("archive: %d documentos guardados, %d pendientes en %s\n", archived, pending, *objectsPath)
+	fmt.Printf("archive: %d documentos guardados, %d excluidos, %d pendientes en %s\n",
+		archived, excluded, pending, *objectsPath)
 	if pending > 0 {
 		return fmt.Errorf("archive: %d documentos quedaron pendientes, vuelve a ejecutarlo para reintentar", pending)
 	}

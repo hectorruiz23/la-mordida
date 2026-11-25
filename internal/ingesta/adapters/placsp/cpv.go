@@ -9,13 +9,14 @@ import (
 // selectedFamilies are the CPV families this project follows: 302 (computer
 // equipment), 48 (software packages) and 72 (IT services). The prefix is
 // matched against the leading digits of the published code; the original code
-// is kept beside it. Everything else is kept with Included false: excluded is
-// not dropped.
+// is kept beside it. A scope with no selected code does not enter the database:
+// its classification is evidence for the coverage count, not a row to store.
 var selectedFamilies = []string{"302", "48", "72"}
 
 // classifyPublished selects the published codes of one scope. The level used
 // for the selection is the family prefix, not the whole code, and the code
-// itself stays untouched.
+// itself stays untouched. Included is the decision of the whole scope: it is
+// true exactly when one of its published codes belongs to a selected family.
 func classifyPublished(codes []string) domain.Classification {
 	if len(codes) == 0 {
 		return domain.Classification{
@@ -31,6 +32,7 @@ func classifyPublished(codes []string) domain.Classification {
 		reason := "family_not_selected"
 		if ok {
 			reason = "family_selected"
+			classification.Included = true
 		}
 		classification.Codes = append(classification.Codes, domain.CPV{
 			Code:     code,
@@ -74,6 +76,9 @@ func inheritForLot(expediente domain.Classification) domain.Classification {
 	}
 	for _, code := range expediente.Codes {
 		code.Reason = "family_inherited"
+		if code.Included {
+			inherited.Included = true
+		}
 		inherited.Codes = append(inherited.Codes, code)
 	}
 	return inherited

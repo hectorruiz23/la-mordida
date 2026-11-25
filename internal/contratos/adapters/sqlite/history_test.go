@@ -84,6 +84,11 @@ func TestTwoAwardsInOneProcedureAndOneWithoutLot(t *testing.T) {
 	publication.Expediente.FolderID = "DOS-LOTES/2025"
 	publication.ExternalID = "urn:test:two-awards"
 	publication.BodyHash = "hash-two-awards"
+	publication.Lots = append(publication.Lots, domain.Lot{
+		ID:     "2",
+		Object: "Productos de limpieza",
+		CPV:    selected("72500000", "72"),
+	})
 	publication.Awards = []domain.Award{{
 		LotID:      "1",
 		ResultCode: "8",

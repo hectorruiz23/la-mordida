@@ -234,6 +234,12 @@ func rebuildAwardProjections(ctx context.Context, tx *sql.Tx, expedienteID int64
 	// The current awarded result is also the counting unit of the winner
 	// ranking. It is materialised in the same transaction so the ranking never
 	// reads a projection that disagrees with the stored unit.
+	//
+	// Only a unit whose scope was selected belongs in the ranking. The check
+	// reads the whole history of the expediente, not just the current
+	// publication: a correction that omits the CPV still counts, and the same
+	// selected units are counted whether the source stored only them or the
+	// whole universe.
 	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO award_unit (
 			unit_key, expediente_id, lot_id, publication_id, award_date, result_code,
@@ -245,7 +251,14 @@ func rebuildAwardProjections(ctx context.Context, tx *sql.Tx, expedienteID int64
 		       ap.contract_id, ap.contract_issue_date, e.buyer_ref, ap.state
 		FROM award_projection ap
 		JOIN expediente e ON e.id = ap.expediente_id
-		WHERE ap.expediente_id = ? AND ap.result_code = '8'`,
+		WHERE ap.expediente_id = ? AND ap.result_code = '8'
+		  AND EXISTS (
+			SELECT 1 FROM cpv c
+			JOIN publication cp ON cp.id = c.publication_id
+			WHERE cp.expediente_id = ap.expediente_id
+			  AND c.included = 1
+			  AND ((ap.lot_id = '' AND c.scope = 'expediente' AND c.lot_key = '')
+			    OR (ap.lot_id <> '' AND c.scope = 'lote' AND c.lot_key = ap.lot_id)))`,
 		expedienteID,
 	); err != nil {
 		return fmt.Errorf("store award units: %w", err)

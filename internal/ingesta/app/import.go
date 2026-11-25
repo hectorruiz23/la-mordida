@@ -96,7 +96,15 @@ type Request struct {
 	RecoverBoundary bool
 }
 
-// Run is one importer invocation as it is persisted.
+// Exclusion is the count of units left out for one reason.
+type Exclusion struct {
+	Reason string
+	Units  int
+}
+
+// Run is one importer invocation as it is persisted. Seen is every
+// publication the reader yielded; Publications is how many entered; Excluded
+// is how many were left out; Errors is how many could not be read or stored.
 type Run struct {
 	ID             int64
 	SpanID         int64
@@ -110,7 +118,10 @@ type Run struct {
 	State          RunState
 	StartedAt      time.Time
 	FinishedAt     time.Time
+	Seen           int
 	Publications   int
+	Excluded       int
+	Errors         int
 	Pages          int
 	Detail         string
 }
@@ -125,7 +136,11 @@ type Span struct {
 	PeriodUntil    time.Time
 	UntilExclusive bool
 	State          SpanState
+	Seen           int
 	Publications   int
+	Excluded       int
+	Errors         int
+	Exclusions     []Exclusion
 	Pages          int
 	LastCompleteAt time.Time
 	LastPage       string
@@ -136,7 +151,11 @@ type Span struct {
 type Progress struct {
 	RunID        int64
 	SpanID       int64
+	Seen         int
 	Publications int
+	Excluded     int
+	Errors       int
+	Exclusions   map[string]int
 	Pages        int
 	Cursor       Cursor
 }
@@ -160,7 +179,10 @@ type Report struct {
 	From           time.Time
 	Until          time.Time
 	UntilExclusive bool
+	Seen           int
 	Publications   int
+	Excluded       int
+	Errors         int
 	Pages          int
 	Cursor         Cursor
 	Detail         string
@@ -239,22 +261,39 @@ func (i *Importer) Import(ctx context.Context, request Request) (Report, error) 
 	}
 	span.ID = run.SpanID
 
-	progress := Progress{RunID: run.ID, SpanID: span.ID}
+	progress := Progress{RunID: run.ID, SpanID: span.ID, Exclusions: map[string]int{}}
 	lastSeen := time.Time{}
 	stored := 0
 
 	yield := func(publication domain.Publication) error {
+		progress.Seen++
 		normalized, err := toContratos(publication)
 		if err != nil {
+			progress.Errors++
 			return fmt.Errorf("publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
 		}
-		if err := i.sink.StorePublication(ctx, normalized); err != nil {
-			return fmt.Errorf("store publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
-		}
-		stored++
+		// The cursor advances over every entry the reader yielded, including
+		// the ones this importer leaves out: an excluded publication is read,
+		// not pending.
 		if publication.UpdatedAt.After(lastSeen) {
 			lastSeen = publication.UpdatedAt
 		}
+		decision, err := i.sink.Decide(ctx, normalized)
+		if err != nil {
+			progress.Errors++
+			return fmt.Errorf("decide publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
+		}
+		if !decision.Store {
+			progress.Excluded++
+			progress.Exclusions[decision.Reason]++
+			return nil
+		}
+		if err := i.sink.StorePublication(ctx, normalized); err != nil {
+			progress.Errors++
+			return fmt.Errorf("store publication %s/%s: %w", publication.Reference.Source, publication.Reference.ID, err)
+		}
+		stored++
+		progress.Publications = stored
 		return nil
 	}
 
@@ -297,7 +336,10 @@ func (i *Importer) Import(ctx context.Context, request Request) (Report, error) 
 		}
 	}
 
+	report.Seen = progress.Seen
 	report.Publications = stored
+	report.Excluded = progress.Excluded
+	report.Errors = progress.Errors
 	report.Pages = progress.Pages
 	report.Cursor = progress.Cursor
 

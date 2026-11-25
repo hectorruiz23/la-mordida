@@ -6,12 +6,18 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/hectorruiz23/la-mordida/internal/archivo/domain"
 )
+
+// ErrExcluded says the document belongs to a unit the import left out. It is
+// not a download failure: nothing is fetched, nothing is recorded and there is
+// no pending retry.
+var ErrExcluded = errors.New("document belongs to an excluded unit")
 
 // Fetcher returns the bytes a URL serves now and the MIME type it announced.
 type Fetcher interface {
@@ -32,21 +38,32 @@ type Index interface {
 	Store(ctx context.Context, link domain.Link, origin domain.Origin) error
 }
 
+// Selector tells whether the link's target unit was admitted by the import.
+// An excluded unit has no announcement to fetch and no evidence to store.
+type Selector interface {
+	Admitted(ctx context.Context, link domain.Link) (bool, error)
+}
+
 // Archiver downloads and stores the documents of one publication at a time.
 type Archiver struct {
-	fetcher Fetcher
-	objects Objects
-	index   Index
-	now     func() time.Time
+	fetcher  Fetcher
+	objects  Objects
+	index    Index
+	selector Selector
+	now      func() time.Time
 }
 
 func New(fetcher Fetcher, objects Objects, index Index) *Archiver {
-	return &Archiver{
+	archiver := &Archiver{
 		fetcher: fetcher,
 		objects: objects,
 		index:   index,
 		now:     func() time.Time { return time.Now().UTC() },
 	}
+	if selector, ok := index.(Selector); ok {
+		archiver.selector = selector
+	}
+	return archiver
 }
 
 // Archive stores one link's bytes and records where they came from. When the
@@ -56,6 +73,15 @@ func New(fetcher Fetcher, objects Objects, index Index) *Archiver {
 func (a *Archiver) Archive(ctx context.Context, link domain.Link) (domain.Link, error) {
 	if err := link.Validate(); err != nil {
 		return link, err
+	}
+	if a.selector != nil {
+		admitted, err := a.selector.Admitted(ctx, link)
+		if err != nil {
+			return link, fmt.Errorf("check admission of %s: %w", link.URL, err)
+		}
+		if !admitted {
+			return link, ErrExcluded
+		}
 	}
 	link.Attempts++
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	contratossqlite "github.com/hectorruiz23/la-mordida/internal/contratos/adapters/sqlite"
+	contratosapp "github.com/hectorruiz23/la-mordida/internal/contratos/app"
 	ingestasqlite "github.com/hectorruiz23/la-mordida/internal/ingesta/adapters/sqlite"
 	ingestaapp "github.com/hectorruiz23/la-mordida/internal/ingesta/app"
 	ingestadomain "github.com/hectorruiz23/la-mordida/internal/ingesta/domain"
@@ -63,6 +64,11 @@ func publication(id string, at time.Time, folder string) ingestadomain.Publicati
 		Expediente: ingestadomain.Expediente{
 			FolderID: folder,
 			Buyer:    ingestadomain.Party{Scheme: "NIF", ID: "B1", Name: "Comprador"},
+			CPV: ingestadomain.Classification{
+				Source:   ingestadomain.ClassificationPublished,
+				Included: true,
+				Codes:    []ingestadomain.CPV{{Code: "30200000", Family: "302", Included: true, Reason: "family_selected"}},
+			},
 		},
 		Awards: []ingestadomain.Award{{
 			ResultCode: "ADJ",
@@ -110,7 +116,7 @@ func importInto(t *testing.T, path string, reader ingestaapp.Reader, request ing
 	}
 	request.Source = "placsp:sindicacion_643"
 	request.Reader = reader
-	importer := ingestaapp.NewResumableImporter(reader, contratossqlite.New(database), ingestasqlite.New(database))
+	importer := ingestaapp.NewResumableImporter(reader, contratosapp.NewImporter(contratossqlite.New(database)), ingestasqlite.New(database))
 	return importer.Import(context.Background(), request)
 }
 

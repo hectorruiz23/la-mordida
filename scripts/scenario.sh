@@ -77,6 +77,13 @@ db="$tmp/contratos.db"
 ./bin/contratos import -db "$db" -fixture "$fixtures/rebajas.json" \
     -source consultas-rebajas -since-last >>"$tmp/import-rebajas.log"
 
+# The mixed fixture: one expediente with a selected and an excluded lot, one
+# procedure outside the tracked families, one without any CPV, and a
+# correction without CPV of the expediente already followed. Only the selected
+# lot may be stored, and the counter must square.
+./bin/contratos import -db "$db" -fixture "$fixtures/mixto.json" \
+    -source consultas-mixto -from 2025-01-01 -until 2026-01-01 >"$tmp/import-mixto.log"
+
 ./bin/contratos serve -db "$db" -addr 127.0.0.1:0 >"$tmp/serve.log" 2>&1 &
 server=$!
 
@@ -115,7 +122,7 @@ curl -fsS "$base/rebajas?buyer_scheme=NIF&buyer_id=P1000000T&from=2030-01-01" >"
 invalid_status=$(curl -s -o "$tmp/invalid.html" -w '%{http_code}' "$base/adjudicatarios?from=no-es-fecha")
 curl -fsS "$base/assets/style.css" >"$tmp/style.css"
 
-python3 - "$tmp" "$root/testdata/consultas/web-manifest.json" "$base" "$invalid_status" <<'PY'
+python3 - "$tmp" "$root/testdata/consultas/web-manifest.json" "$base" "$invalid_status" "$db" <<'PY'
 import html
 import json
 import re
@@ -128,6 +135,7 @@ tmp = Path(sys.argv[1])
 manifest = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 base = sys.argv[3]
 invalid_status = sys.argv[4]
+db_path = sys.argv[5]
 
 
 def load(name):
@@ -351,5 +359,95 @@ check("Actualización" in coverage, "coverage does not show the incremental load
 style = (tmp / "style.css").read_text(encoding="utf-8")
 check(len(style) > 500 and "{" in style, "the embedded stylesheet did not answer as CSS")
 
-print("scenario: both HTML rankings, their links and document hashes answer over the repository fixtures")
+# --- The mixed fixture: what is excluded leaves no row ---------------------
+import sqlite3
+
+database = sqlite3.connect(db_path)
+database.row_factory = sqlite3.Row
+
+
+def one(query, args=()):
+    return database.execute(query, args).fetchone()[0]
+
+
+def column(query, args=()):
+    return [row[0] for row in database.execute(query, args)]
+
+
+mixed = manifest["mixto"]
+for folder in mixed["dropped_folders"]:
+    check(one("SELECT COUNT(*) FROM expediente WHERE folder_id = ?", (folder,)) == 0,
+          "excluded expediente %s was stored" % folder)
+    check(one("""SELECT COUNT(*) FROM publication p
+                 JOIN expediente e ON e.id = p.expediente_id WHERE e.folder_id = ?""", (folder,)) == 0,
+          "excluded expediente %s kept a publication" % folder)
+    check(one("""SELECT COUNT(*) FROM award a
+                 JOIN expediente e ON e.id = a.expediente_id WHERE e.folder_id = ?""", (folder,)) == 0,
+          "excluded expediente %s kept an award" % folder)
+    check(one("""SELECT COUNT(*) FROM budget_amount b
+                 JOIN publication p ON p.id = b.publication_id
+                 JOIN expediente e ON e.id = p.expediente_id WHERE e.folder_id = ?""", (folder,)) == 0,
+          "excluded expediente %s kept an amount" % folder)
+    check(one("""SELECT COUNT(*) FROM document_link d
+                 JOIN publication p ON p.id = d.publication_id
+                 JOIN expediente e ON e.id = p.expediente_id WHERE e.folder_id = ?""", (folder,)) == 0,
+          "excluded expediente %s kept a document link" % folder)
+
+for folder in mixed["kept_folders"]:
+    expediente = one("SELECT id FROM expediente WHERE folder_id = ?", (folder,))
+    lots = column("SELECT lot_id FROM lot WHERE expediente_id = ? ORDER BY lot_id", (expediente,))
+    check(lots == mixed["kept_lots"], "%s kept lots %r" % (folder, lots))
+    awards = column("SELECT DISTINCT lot_id FROM award WHERE expediente_id = ? ORDER BY lot_id", (expediente,))
+    check(awards == mixed["kept_lots"], "%s kept awards for lots %r" % (folder, awards))
+    budget_lots = column("""SELECT DISTINCT b.lot_key FROM budget_amount b
+                            JOIN publication p ON p.id = b.publication_id
+                            WHERE p.expediente_id = ? ORDER BY b.lot_key""", (expediente,))
+    for dropped in mixed["dropped_lots"]:
+        check(dropped not in budget_lots, "%s kept the budget of excluded lot %s" % (folder, dropped))
+    documents = column("""SELECT DISTINCT d.target_ref FROM document_link d
+                          JOIN publication p ON p.id = d.publication_id
+                          WHERE p.expediente_id = ? AND d.target_kind = 'lot'
+                          ORDER BY d.target_ref""", (expediente,))
+    for dropped in mixed["dropped_lots"]:
+        check(dropped not in documents, "%s kept the document of excluded lot %s" % (folder, dropped))
+    check(one("SELECT COUNT(*) FROM award_unit WHERE expediente_id = ?", (expediente,)) == 1,
+          "%s did not count only its selected lot" % folder)
+    correction = mixed["correction"]
+    check(one("""SELECT COUNT(*) FROM publication p
+                 WHERE p.expediente_id = ? AND p.published_at = ?""",
+              (expediente, correction["published_at"])) == 1,
+          "the correction without CPV of %s was not stored" % folder)
+    check(one("SELECT status FROM expediente WHERE id = ?", (expediente,)) == correction["status"],
+          "the correction without CPV did not project its status on %s" % folder)
+
+section = re.search(
+    r'<section class="coverage-source" data-source="%s">(.*?)</section>' % re.escape(mixed["source"]),
+    coverage,
+    re.S,
+)
+check(section is not None, "coverage does not show %s" % mixed["source"])
+section = section.group(1)
+row = re.search(
+    r'<tr data-span="[^"]*" data-seen="(\d+)" data-accepted="(\d+)" data-excluded="(\d+)" data-errors="(\d+)">',
+    section,
+)
+check(row is not None, "the mixed coverage row has no counters")
+seen, accepted, excluded, errors = (int(value) for value in row.groups())
+check(
+    (seen, accepted, excluded, errors)
+    == (mixed["seen"], mixed["accepted"], mixed["excluded"], mixed["errors"]),
+    "mixed counters = %r" % ((seen, accepted, excluded, errors),),
+)
+check(seen == accepted + excluded + errors, "seen != accepted + excluded + errors")
+for name, value in (("seen", seen), ("accepted", accepted), ("excluded", excluded), ("errors", errors)):
+    check('data-field="%s">%d</td>' % (name, value) in section,
+          "coverage does not render %s = %d" % (name, value))
+reasons = {
+    match.group(1): int(match.group(2))
+    for match in re.finditer(r'data-exclusion-reason="([^"]+)" data-exclusion-units="(\d+)"', section)
+}
+check(reasons == mixed["excluded_reasons"], "exclusion reasons = %r" % reasons)
+database.close()
+
+print("scenario: both HTML rankings, the mixed exclusion, its counters and document hashes answer over the repository fixtures")
 PY

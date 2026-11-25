@@ -31,6 +31,9 @@ func testAtomEntry(id, updated, folder string) string {
   <cac-place-ext:ContractFolderStatus>
     <cbc:ContractFolderID>` + folder + `</cbc:ContractFolderID>
     <cbc:ContractFolderStatusCode>ADJ</cbc:ContractFolderStatusCode>
+    <cac:ProcurementProject>
+      <cac:RequiredCommodityClassification><cbc:ItemClassificationCode>30200000</cbc:ItemClassificationCode></cac:RequiredCommodityClassification>
+    </cac:ProcurementProject>
     <cac-place-ext:LocatedContractingParty>
       <cac:Party>
         <cac:PartyIdentification><cbc:ID schemeName="NIF">P0000000A</cbc:ID></cac:PartyIdentification>

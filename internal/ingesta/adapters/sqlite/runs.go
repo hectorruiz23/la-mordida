@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -114,20 +115,25 @@ func (s *Store) Record(ctx context.Context, progress app.Progress) error {
 
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE import_span
-		SET state = 'partial', publications = ?, pages = ?,
+		SET state = 'partial', seen = ?, publications = ?, excluded = ?, pages = ?,
 		    last_complete_at = ?, last_page = ?
 		WHERE id = ?`,
-		progress.Publications, progress.Pages,
+		progress.Seen, progress.Publications, progress.Excluded, progress.Pages,
 		formatTime(progress.Cursor.LastCompleteAt), progress.Cursor.LastPage,
 		progress.SpanID,
 	); err != nil {
 		return fmt.Errorf("record import span: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, `
-		UPDATE import_run SET publications = ?, pages = ? WHERE id = ?`,
-		progress.Publications, progress.Pages, progress.RunID,
+		UPDATE import_run
+		SET seen = ?, publications = ?, excluded = ?, pages = ?
+		WHERE id = ?`,
+		progress.Seen, progress.Publications, progress.Excluded, progress.Pages, progress.RunID,
 	); err != nil {
 		return fmt.Errorf("record import counters: %w", err)
+	}
+	if err := replaceExclusions(ctx, tx, progress.SpanID, progress.Exclusions); err != nil {
+		return err
 	}
 	if !progress.Cursor.IsZero() {
 		if err := upsertCursor(ctx, tx, progress.Cursor, s.now()); err != nil {
@@ -158,22 +164,27 @@ func (s *Store) Finish(ctx context.Context, run app.Run, progress app.Progress, 
 	finishedAt := s.now().Unix()
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE import_run
-		SET state = ?, finished_at = ?, publications = ?, pages = ?, detail = ?
+		SET state = ?, finished_at = ?, seen = ?, publications = ?, excluded = ?,
+		    pages = ?, detail = ?
 		WHERE id = ?`,
-		string(state), finishedAt, progress.Publications, progress.Pages, detail, run.ID,
+		string(state), finishedAt, progress.Seen, progress.Publications,
+		progress.Excluded, progress.Pages, detail, run.ID,
 	); err != nil {
 		return fmt.Errorf("finish import run: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE import_span
-		SET state = ?, publications = ?, pages = ?, last_complete_at = ?,
-		    last_page = ?, detail = ?
+		SET state = ?, seen = ?, publications = ?, excluded = ?, pages = ?,
+		    last_complete_at = ?, last_page = ?, detail = ?
 		WHERE id = ?`,
-		string(span), progress.Publications, progress.Pages,
-		formatTime(progress.Cursor.LastCompleteAt), progress.Cursor.LastPage,
-		detail, progress.SpanID,
+		string(span), progress.Seen, progress.Publications, progress.Excluded,
+		progress.Pages, formatTime(progress.Cursor.LastCompleteAt),
+		progress.Cursor.LastPage, detail, progress.SpanID,
 	); err != nil {
 		return fmt.Errorf("finish import span: %w", err)
+	}
+	if err := replaceExclusions(ctx, tx, progress.SpanID, progress.Exclusions); err != nil {
+		return err
 	}
 	if !progress.Cursor.IsZero() {
 		if err := upsertCursor(ctx, tx, progress.Cursor, s.now()); err != nil {
@@ -204,7 +215,7 @@ func (s *Store) Cursor(ctx context.Context, source string) (app.Cursor, bool, er
 func (s *Store) Spans(ctx context.Context, source string) ([]app.Span, error) {
 	rows, err := s.database.QueryContext(ctx, `
 		SELECT id, run_id, source, kind, period_from, period_until, until_exclusive,
-		       state, publications, pages, last_complete_at, last_page, detail
+		       state, seen, publications, excluded, pages, last_complete_at, last_page, detail
 		FROM import_span
 		WHERE source = ?
 		ORDER BY id`,
@@ -225,7 +236,8 @@ func (s *Store) Spans(ctx context.Context, source string) ([]app.Span, error) {
 		)
 		if err := rows.Scan(
 			&span.ID, &span.RunID, &span.Source, &kind, &from, &until, &untilExclusive,
-			&state, &span.Publications, &span.Pages, &lastComplete, &span.LastPage, &span.Detail,
+			&state, &span.Seen, &span.Publications, &span.Excluded, &span.Pages,
+			&lastComplete, &span.LastPage, &span.Detail,
 		); err != nil {
 			return nil, fmt.Errorf("scan import span: %w", err)
 		}
@@ -235,12 +247,98 @@ func (s *Store) Spans(ctx context.Context, source string) ([]app.Span, error) {
 		span.PeriodUntil = parseTime(until)
 		span.UntilExclusive = untilExclusive != 0
 		span.LastCompleteAt = parseTime(lastComplete)
+		span.Errors = derivedErrors(span.Seen, span.Publications, span.Excluded)
 		spans = append(spans, span)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("read import spans: %w", err)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, fmt.Errorf("close import spans: %w", err)
+	}
+	if len(spans) == 0 {
+		return spans, nil
+	}
+	exclusions, err := readExclusions(ctx, s.database, spanIDs(spans))
+	if err != nil {
+		return nil, err
+	}
+	for index := range spans {
+		spans[index].Exclusions = exclusions[spans[index].ID]
+	}
 	return spans, nil
+}
+
+func replaceExclusions(ctx context.Context, tx *sql.Tx, spanID int64, exclusions map[string]int) error {
+	if _, err := tx.ExecContext(ctx, `DELETE FROM import_exclusion WHERE span_id = ?`, spanID); err != nil {
+		return fmt.Errorf("clear import exclusions: %w", err)
+	}
+	reasons := make([]string, 0, len(exclusions))
+	for reason, units := range exclusions {
+		if units > 0 {
+			reasons = append(reasons, reason)
+		}
+	}
+	sort.Strings(reasons)
+	for _, reason := range reasons {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO import_exclusion (span_id, reason, units) VALUES (?, ?, ?)`,
+			spanID, reason, exclusions[reason],
+		); err != nil {
+			return fmt.Errorf("record import exclusion %s: %w", reason, err)
+		}
+	}
+	return nil
+}
+
+func readExclusions(ctx context.Context, queryer queryer, ids []int64) (map[int64][]app.Exclusion, error) {
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",")
+	args := make([]any, len(ids))
+	for index, id := range ids {
+		args[index] = id
+	}
+	rows, err := queryer.QueryContext(ctx, `
+		SELECT span_id, reason, units FROM import_exclusion
+		WHERE span_id IN (`+placeholders+`)
+		ORDER BY span_id, reason`, args...)
+	if err != nil {
+		return nil, fmt.Errorf("read import exclusions: %w", err)
+	}
+	defer rows.Close()
+
+	exclusions := make(map[int64][]app.Exclusion, len(ids))
+	for rows.Next() {
+		var spanID int64
+		var exclusion app.Exclusion
+		if err := rows.Scan(&spanID, &exclusion.Reason, &exclusion.Units); err != nil {
+			return nil, fmt.Errorf("scan import exclusion: %w", err)
+		}
+		exclusions[spanID] = append(exclusions[spanID], exclusion)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate import exclusions: %w", err)
+	}
+	return exclusions, nil
+}
+
+type queryer interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+}
+
+func spanIDs(spans []app.Span) []int64 {
+	ids := make([]int64, len(spans))
+	for index, span := range spans {
+		ids[index] = span.ID
+	}
+	return ids
+}
+
+func derivedErrors(seen, accepted, excluded int) int {
+	errors := seen - accepted - excluded
+	if errors < 0 {
+		return 0
+	}
+	return errors
 }
 
 func upsertCursor(ctx context.Context, tx *sql.Tx, cursor app.Cursor, now time.Time) error {
