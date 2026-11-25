@@ -46,6 +46,7 @@ const (
 // replacing the denominator.
 type Rebate struct {
 	UnitKey                  string        `json:"unit_key"`
+	ExpedienteID             int64         `json:"expediente_id"`
 	FolderID                 string        `json:"folder_id"`
 	Object                   string        `json:"object,omitempty"`
 	Buyer                    Party         `json:"buyer"`
@@ -70,6 +71,7 @@ type Rebate struct {
 // machine code above and Detail explains it to the reader.
 type RebateExclusion struct {
 	UnitKey          string      `json:"unit_key"`
+	ExpedienteID     int64       `json:"expediente_id"`
 	FolderID         string      `json:"folder_id"`
 	Object           string      `json:"object,omitempty"`
 	Buyer            Party       `json:"buyer"`

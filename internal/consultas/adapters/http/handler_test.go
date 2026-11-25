@@ -20,6 +20,14 @@ func (f fakeStore) ListExpedientes(context.Context) ([]domain.Expediente, error)
 	return f.expedientes, nil
 }
 
+func (f fakeStore) Expediente(context.Context, int64) (domain.Expediente, error) {
+	return domain.Expediente{}, domain.ErrExpedienteNotFound
+}
+
+func (f fakeStore) Coverage(context.Context) (domain.Coverage, error) {
+	return domain.Coverage{}, nil
+}
+
 func (f fakeStore) Ranking(context.Context, domain.RankingQuery) (domain.Ranking, error) {
 	return domain.Ranking{}, nil
 }

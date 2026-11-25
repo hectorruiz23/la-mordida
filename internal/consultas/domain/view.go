@@ -18,14 +18,15 @@ type Contract struct {
 // it sustains. State tells an announced link from a pending download and from
 // the evidence whose bytes are stored.
 type Document struct {
-	TargetKind string `json:"target_kind,omitempty"`
-	TargetRef  string `json:"target_ref,omitempty"`
-	URL        string `json:"url"`
-	SHA256     string `json:"sha256,omitempty"`
-	Title      string `json:"title,omitempty"`
-	State      string `json:"state"`
-	MIME       string `json:"mime,omitempty"`
-	ObtainedAt string `json:"obtained_at,omitempty"`
+	TargetKind  string      `json:"target_kind,omitempty"`
+	TargetRef   string      `json:"target_ref,omitempty"`
+	URL         string      `json:"url"`
+	SHA256      string      `json:"sha256,omitempty"`
+	Title       string      `json:"title,omitempty"`
+	State       string      `json:"state"`
+	MIME        string      `json:"mime,omitempty"`
+	ObtainedAt  string      `json:"obtained_at,omitempty"`
+	Publication Publication `json:"publication,omitempty"`
 }
 
 // Publication is the source revision the current projection points at.
@@ -54,10 +55,11 @@ type Award struct {
 }
 
 type Lot struct {
-	ID     string         `json:"id"`
-	Object string         `json:"object,omitempty"`
-	Budget []kernel.Money `json:"budget,omitempty"`
-	State  string         `json:"state,omitempty"`
+	ID             string         `json:"id"`
+	Object         string         `json:"object,omitempty"`
+	Budget         []kernel.Money `json:"budget,omitempty"`
+	OriginalBudget []kernel.Money `json:"original_budget,omitempty"`
+	State          string         `json:"state,omitempty"`
 }
 
 // Fact is one lifecycle fact, kept with the source revision that states it.
@@ -75,15 +77,16 @@ type Fact struct {
 }
 
 type Expediente struct {
-	Buyer       Party          `json:"buyer"`
-	FolderID    string         `json:"folder_id"`
-	Object      string         `json:"object,omitempty"`
-	Status      string         `json:"status,omitempty"`
-	State       string         `json:"state,omitempty"`
-	Budget      []kernel.Money `json:"budget,omitempty"`
-	Lots        []Lot          `json:"lots,omitempty"`
-	Awards      []Award        `json:"awards,omitempty"`
-	Facts       []Fact         `json:"facts,omitempty"`
-	Documents   []Document     `json:"documents,omitempty"`
-	Publication Publication    `json:"publication"`
+	Buyer          Party          `json:"buyer"`
+	FolderID       string         `json:"folder_id"`
+	Object         string         `json:"object,omitempty"`
+	Status         string         `json:"status,omitempty"`
+	State          string         `json:"state,omitempty"`
+	Budget         []kernel.Money `json:"budget,omitempty"`
+	OriginalBudget []kernel.Money `json:"original_budget,omitempty"`
+	Lots           []Lot          `json:"lots,omitempty"`
+	Awards         []Award        `json:"awards,omitempty"`
+	Facts          []Fact         `json:"facts,omitempty"`
+	Documents      []Document     `json:"documents,omitempty"`
+	Publication    Publication    `json:"publication"`
 }

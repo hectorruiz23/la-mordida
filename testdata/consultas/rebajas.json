@@ -66,6 +66,13 @@
             }
           ]
         }
+      ],
+      "documents": [
+        {
+          "url": "https://example.invalid/reb-20/pliego.pdf",
+          "title": "Pliego de condiciones",
+          "sha256": "690e293ea46b47d1cb274413dde60c6e1dd47be9bd9e958a9bf099b9ad7e91e2"
+        }
       ]
     },
     {
@@ -152,6 +159,24 @@
               "tax_base": "tax_inclusive"
             }
           ]
+        },
+        {
+          "kind": "final_payment",
+          "ref": "FP-REB-20",
+          "effective_date": "2025-09-30",
+          "amounts": [
+            {
+              "amount": "90000",
+              "currency": "EUR",
+              "tax_base": "tax_exclusive"
+            },
+            {
+              "amount": "108900",
+              "currency": "EUR",
+              "tax_base": "tax_inclusive"
+            }
+          ],
+          "detail": "Certificación final de la ampliación"
         }
       ]
     },

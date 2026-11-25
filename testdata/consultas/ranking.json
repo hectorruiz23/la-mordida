@@ -115,7 +115,8 @@
       "documents": [
         {
           "url": "https://example.invalid/rank-2025/pliego.pdf",
-          "title": "Pliego de condiciones"
+          "title": "Pliego de condiciones",
+          "sha256": "92852a480140fc12f7a935eb1743f8aca9055098558e1bce93562a7add29ae3b"
         }
       ]
     },
@@ -282,7 +283,8 @@
       "documents": [
         {
           "url": "https://example.invalid/rank-2025/pliego.pdf",
-          "title": "Pliego de condiciones"
+          "title": "Pliego de condiciones",
+          "sha256": "92852a480140fc12f7a935eb1743f8aca9055098558e1bce93562a7add29ae3b"
         }
       ]
     },
