@@ -26,6 +26,7 @@ type Store interface {
 	ListExpedientes(ctx context.Context) ([]domain.Expediente, error)
 	Ranking(ctx context.Context, query domain.RankingQuery) (domain.Ranking, error)
 	Awards(ctx context.Context, query domain.RankingQuery, entityKey string) (domain.AwardPage, error)
+	Rebates(ctx context.Context, query domain.RankingQuery) (domain.RebateRanking, error)
 }
 
 type Service struct {
@@ -47,6 +48,16 @@ func (s *Service) Ranking(ctx context.Context, query domain.RankingQuery) (domai
 		return domain.Ranking{}, err
 	}
 	return s.store.Ranking(ctx, normalized)
+}
+
+// Rebates reads the comparable award units of one scope ordered by the exact
+// quotient between their initial budget and their current awarded price.
+func (s *Service) Rebates(ctx context.Context, query domain.RankingQuery) (domain.RebateRanking, error) {
+	normalized, err := normalize(query)
+	if err != nil {
+		return domain.RebateRanking{}, err
+	}
+	return s.store.Rebates(ctx, normalized)
 }
 
 // Awards reads the justifying list of one ranked entity under the same scope

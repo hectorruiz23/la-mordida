@@ -349,6 +349,7 @@ func runServe(args []string) error {
 	mux.HandleFunc("GET /api/expedientes", handler.List)
 	mux.HandleFunc("GET /api/ranking", handler.Ranking)
 	mux.HandleFunc("GET /api/ranking/awards", handler.Awards)
+	mux.HandleFunc("GET /api/rebajas", handler.Rebates)
 
 	listener, err := net.Listen("tcp", *addr)
 	if err != nil {
