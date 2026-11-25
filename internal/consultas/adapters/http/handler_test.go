@@ -20,6 +20,14 @@ func (f fakeStore) ListExpedientes(context.Context) ([]domain.Expediente, error)
 	return f.expedientes, nil
 }
 
+func (f fakeStore) Ranking(context.Context, domain.RankingQuery) (domain.Ranking, error) {
+	return domain.Ranking{}, nil
+}
+
+func (f fakeStore) Awards(context.Context, domain.RankingQuery, string) (domain.AwardPage, error) {
+	return domain.AwardPage{}, nil
+}
+
 func TestListServesImportedExpedienteWithExactAmounts(t *testing.T) {
 	handler := New(app.New(fakeStore{expedientes: []domain.Expediente{{
 		Buyer:    domain.Party{Scheme: "NIF", ID: "P3704600J", Name: "Alcaldía del Ayuntamiento de Béjar"},

@@ -347,6 +347,8 @@ func runServe(args []string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/health", httpserver.Health(database))
 	mux.HandleFunc("GET /api/expedientes", handler.List)
+	mux.HandleFunc("GET /api/ranking", handler.Ranking)
+	mux.HandleFunc("GET /api/ranking/awards", handler.Awards)
 
 	listener, err := net.Listen("tcp", *addr)
 	if err != nil {
